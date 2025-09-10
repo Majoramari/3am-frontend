@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="./tailwind.config.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <title>flex gym </title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Clicker+Script&family=Qwitcher+Grypen:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Ovo&display=swap"
+      rel="stylesheet"
+    />
+<style>
+  .social-icon {
+    color: #15537f;
+    transition: color 0.3s ease;
+  }
+  .social-icon:hover {
+    color: #273843;
+  }
+  /* Navbar */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+html {
+  scroll-behavior: smooth;
+}
+body {
+  font-family: Arial, sans-serif;
+}
+
+/* Navbar Container */
+.navbar {
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 50px;
+  position: fixed;
+  width: 100%;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+}
+
+/* Logo */
+.logo {
+  display: flex;
+  align-items: center;
+}
+.logo img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 10px;
+}
+.logo h2 {
+  font-size: 22px;
+  font-weight: bold;
+}
+
+/* Links */
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 25px;
+}
+.nav-links li a {
+  text-decoration: none;
+  color: white;
+  font-size: 16px;
+  font-weight: 500;
+  transition: 0.3s;
+}
+.nav-links li a:hover {
+  color: #273843;
+}
+
+/* Join Button */
+.join-btn {
+  background: #15537f;
+  color: #000 !important;
+  padding: 8px 15px;
+  border-radius: 6px;
+  font-weight: bold;
+  transition: 0.3s;
+}
+.join-btn:hover {
+  background: #273843;
+}
+
+/* Burger Menu */
+.menu-toggle {
+  display: none;
+  font-size: 26px;
+  cursor: pointer;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .nav-links {
+    position: absolute;
+    top: 60px;
+    right: 0;
+    background: rgba(17, 17, 17, 0.07);
+    flex-direction: column;
+    width: 200px;
+    text-align: center;
+    display: none;
+    padding: 20px 0;
+  }
+  .nav-links.active {
+    display: flex;
+  }
+  .nav-links li {
+    margin: 15px 0;
+  }
+  .menu-toggle {
+    display: block;
+  }
+}
+
+</style>
+
+</head>
+<body class="dark:bg-[#0d1117] dark:text-white bg-gray-100 text-black">
+
+<!-- Navbar -->
+  <nav class="navbar">
+    <div class="logo">
+      <img src="./img/icon.jpg" alt="FLEXGYM Logo">
+      <h2>FLEXGYM</h2>
+    </div>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="Pricing.html">Pricing</a></li>
+      <li><a href="contact.html">Contact</a></li> <!-- ✅ Fixed -->
+      <li><a href="login.html" class="join-btn">Join Now</a></li>
+    </ul>
+    <div class="menu-toggle" id="menuToggle">&#9776;</div>
+  </nav>
+<div style="display: block; margin-top: 100px;">
+
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 w-11/12 mx-auto justify-items-center">
+
+
+    <!-- card 1 -->
+    <div class="relative group overflow-hidden rounded-md shadow-lg">
+      <img src="./img/gym1.webp" class="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-110">
+      <div class="absolute inset-0 bg-black bg-opacity-60 flex flex-col justify-center items-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+        <h3 class="text-white text-xl font-bold mb-3">Gym 1</h3>
+        <div class="flex gap-4">
+          <a href="#" class="text-white text-2xl hover:text-blue-500"><i class="fa-solid fa-map-location-dot"></i></a>
+          <a href="#" class="text-white text-2xl hover:text-blue-600"><i class="fab fa-facebook-f"></i></a>
+          <a href="#" class="text-white text-2xl hover:text-pink-500"><i class="fab fa-instagram"></i></a>
+          <a href="#" class="text-white text-2xl hover:text-blue-400"><i class="fa-brands fa-tiktok"></i></a>
+        </div>
+      </div>
+    </div>
+
+    <!-- card 2 -->
+    <div class="relative group overflow-hidden rounded-md shadow-lg">
+      <img src="./img/gym2.jpg" class="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-110">
+      <div class="absolute inset-0 bg-black bg-opacity-60 flex flex-col justify-center items-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+        <h3 class="text-white text-xl font-bold mb-3">Gym 2</h3>
+        <div class="flex gap-4">
+          <a href="#" class="text-white text-2xl hover:text-blue-500"><i class="fa-solid fa-map-location-dot"></i></a>
+          <a href="#" class="text-white text-2xl hover:text-blue-600"><i class="fab fa-facebook-f"></i></a>
+          <a href="#" class="text-white text-2xl hover:text-pink-500"><i class="fab fa-instagram"></i></a>
+          <a href="#" class="text-white text-2xl hover:text-blue-400"><i class="fa-brands fa-tiktok"></i></a>
+        </div>
+      </div>
+    </div>
+
+    <!-- card 3 -->
+    <div class="relative group overflow-hidden rounded-md shadow-lg">
+      <img src="./img/gym3.webp" class="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-110">
+      <div class="absolute inset-0 bg-black bg-opacity-60 flex flex-col justify-center items-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+        <h3 class="text-white text-xl font-bold mb-3">Gym 3</h3>
+        <div class="flex gap-4">
+          <a href="#" class="text-white text-2xl hover:text-blue-500"><i class="fa-solid fa-map-location-dot"></i></a>
+          <a href="#" class="text-white text-2xl hover:text-blue-600"><i class="fab fa-facebook-f"></i></a>
+          <a href="#" class="text-white text-2xl hover:text-pink-500"><i class="fab fa-instagram"></i></a>
+          <a href="#" class="text-white text-2xl hover:text-blue-400"><i class="fa-brands fa-tiktok"></i></a>
+        </div>
+      </div>
+    </div>
+
+    <!-- card 4 -->
+    <div class="relative group overflow-hidden rounded-md shadow-lg">
+      <img src="./img/gym4.jpg" class="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-110">
+      <div class="absolute inset-0 bg-black bg-opacity-60 flex flex-col justify-center items-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+        <h3 class="text-white text-xl font-bold mb-3">Gym 4</h3>
+        <div class="flex gap-4">
+          <a href="#" class="text-white text-2xl hover:text-blue-500"><i class="fa-solid fa-map-location-dot"></i></a>
+          <a href="#" class="text-white text-2xl hover:text-blue-600"><i class="fab fa-facebook-f"></i></a>
+          <a href="#" class="text-white text-2xl hover:text-pink-500"><i class="fab fa-instagram"></i></a>
+          <a href="#" class="text-white text-2xl hover:text-blue-400"><i class="fa-brands fa-tiktok"></i></a>
+        </div>
+      </div>
+    </div>
+
+    <!-- card 5 -->
+    <div class="relative group overflow-hidden rounded-md shadow-lg">
+      <img src="./img/gym5.webp" class="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-110">
+      <div class="absolute inset-0 bg-black bg-opacity-60 flex flex-col justify-center items-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+        <h3 class="text-white text-xl font-bold mb-3">Gym 5</h3>
+        <div class="flex gap-4">
+          <a href="#" class="text-white text-2xl hover:text-blue-500"><i class="fa-solid fa-map-location-dot"></i></a>
+          <a href="#" class="text-white text-2xl hover:text-blue-600"><i class="fab fa-facebook-f"></i></a>
+          <a href="#" class="text-white text-2xl hover:text-pink-500"><i class="fab fa-instagram"></i></a>
+          <a href="#" class="text-white text-2xl hover:text-blue-400"><i class="fa-brands fa-tiktok"></i></a>
+        </div>
+      </div>
+    </div>
+
+    <!-- card 6 -->
+    <div class="relative group overflow-hidden rounded-md shadow-lg">
+      <img src="./img/gym6.jpg" class="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-110">
+      <div class="absolute inset-0 bg-black bg-opacity-60 flex flex-col justify-center items-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+        <h3 class="text-white text-xl font-bold mb-3">Gym 6</h3>
+        <div class="flex gap-4">
+          <a href="#" class="text-white text-2xl hover:text-blue-500"><i class="fa-solid fa-map-location-dot"></i></a>
+          <a href="#" class="text-white text-2xl hover:text-blue-600"><i class="fab fa-facebook-f"></i></a>
+          <a href="#" class="text-white text-2xl hover:text-pink-500"><i class="fab fa-instagram"></i></a>
+          <a href="#" class="text-white text-2xl hover:text-blue-400"><i class="fa-brands fa-tiktok"></i></a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  </div>
+<br>
+<!-- Contact Section -->
+<section id="contact" class="bg-gray-100 dark:bg-[#0d1117] py-16 px-4 sm:px-10 lg:px-[10%]">
+  <!-- Title -->
+  <h2 class="text-4xl md:text-5xl font-Ovo text-center dark:text-white">Get In Touch</h2>
+  <p class="mt-4 text-center text-gray-700 dark:text-gray-300 max-w-2xl mx-auto">
+    I would love to hear from you! If you have any questions, comments, or feedback, please use the form below.
+  </p>
+
+  <!-- Contact Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10">
+    <!-- Phone Card -->
+    <div class="flex flex-col items-center p-6 bg-white dark:bg-[#161b22] rounded-lg shadow-lg text-center">
+      <i class="fa-solid fa-phone text-green-600 text-3xl mb-3"></i>
+      <h3 class="text-xl font-semibold mb-1 dark:text-white">Phone</h3>
+      <p class="text-gray-600 dark:text-gray-300">+201100386004</p>
+    </div>
+
+    <!-- Email Card -->
+    <a href="mailto:moamrmousa333@gmail.com" class="flex flex-col items-center p-6 bg-white dark:bg-[#161b22] rounded-lg shadow-lg text-center hover:shadow-xl transition">
+      <i class="fa-solid fa-envelope text-blue-600 text-3xl mb-3"></i>
+      <h3 class="text-xl font-semibold mb-1 dark:text-white">Email</h3>
+      <p class="text-gray-600 dark:text-gray-300">moamrmousa333@gmail.com</p>
+    </a>
+
+    <!-- Address Card -->
+    <div class="flex flex-col items-center p-6 bg-white dark:bg-[#161b22] rounded-lg shadow-lg text-center">
+      <i class="fa-solid fa-location-dot text-red-600 text-3xl mb-3"></i>
+      <h3 class="text-xl font-semibold mb-1 dark:text-white">Address</h3>
+      <p class="text-gray-600 dark:text-gray-300">Egypt, Fayoum, Tamia</p>
+    </div>
+  </div>
+
+  <!-- Form Title -->
+  <h3 class="mt-14 text-2xl font-bold text-center dark:text-white">Send Me An Email</h3>
+
+  <!-- Contact Form -->
+  <form action="https://api.web3forms.com/submit" method="POST" class="max-w-3xl mx-auto mt-8">
+    <input type="hidden" name="access_key" value="f34a8582-8934-417f-b412-e8856fda995d" />
+
+    <!-- Inputs -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      <input
+        type="text"
+        name="name"
+        placeholder="Your Name"
+        required
+        class="p-3 rounded-md border border-gray-300 dark:border-white/30 bg-white dark:bg-[#161b22] text-gray-800 dark:text-white outline-none"
+      />
+      <input
+        type="email"
+        name="email"
+        placeholder="Your Email"
+        required
+        class="p-3 rounded-md border border-gray-300 dark:border-white/30 bg-white dark:bg-[#161b22] text-gray-800 dark:text-white outline-none"
+      />
+    </div>
+
+    <!-- Message -->
+    <textarea
+      name="message"
+      rows="6"
+      placeholder="Your Message"
+      required
+      class="w-full p-4 mt-6 rounded-md border border-gray-300 dark:border-white/30 bg-white dark:bg-[#161b22] text-gray-800 dark:text-white outline-none"
+    ></textarea>
+
+    <!-- Submit Button -->
+    <div class="flex justify-center mt-6">
+      <button
+        type="submit"
+        class="flex items-center gap-2 px-6 py-3 text-white bg-black dark:bg-[#0d1117] rounded-md hover:bg-gray-800 dark:hover:bg-[#151b23f2] transition"
+      >
+        Submit Email
+        <img src="images/right-arrow-white.png" alt="arrow" class="w-4" />
+      </button>
+    </div>
+  </form>
+</section>
+<!-- Footer -->
+<footer class="bg-[#161b22] text-white text-center py-6 mt-12">
+  <p class="text-sm">&copy; 2025 Flex Gym. All rights reserved.</p>
+  <div class="mt-2 flex justify-center gap-4 text-lg">
+    <a href="#" class="hover:text-blue-400"><i class="fab fa-facebook-f"></i></a>
+    <a href="#" class="hover:text-pink-400"><i class="fab fa-instagram"></i></a>
+    <a href="#" class="hover:text-blue-300"><i class="fab fa-tiktok"></i></a>
+  </div>
+</footer>
+
+</body>
+</html>
