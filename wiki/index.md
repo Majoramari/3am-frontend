@@ -1,6 +1,6 @@
 # 3AM Frontend Guide
 
-> Note: This repo is frontend only. Backend: [ali7510/3AM-Project](https://github.com/ali7510/3AM-Project)
+> Note: This repo is frontend only. [Backend repository](https://github.com/ali7510/3AM-Project)
 
 The UI is built with `View` classes. Components, sections, and pages are all `View` subclasses that render into the DOM
 and clean up after themselves.
