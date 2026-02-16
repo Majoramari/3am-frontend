@@ -1,0 +1,25 @@
+@layer base {
+	:root {
+		--text-color: #ffffff;
+		--background: #000000;
+	}
+
+	html {
+		font-size: 62.5%;
+	}
+
+	body {
+		font-family: "Roboto", sans-serif;
+		font-size: 1.6rem;
+		color: var(--text-color);
+		background: var(--background);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		* {
+			scroll-behavior: auto;
+			transition-duration: 0.01ms;
+			animation-duration: 0.01ms;
+		}
+	}
+}

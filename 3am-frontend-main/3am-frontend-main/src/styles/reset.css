@@ -1,0 +1,40 @@
+@layer reset {
+	*,
+	*::before,
+	*::after {
+		box-sizing: border-box;
+	}
+
+	:where(html) {
+		text-size-adjust: 100%;
+	}
+
+	:where(body) {
+		margin: 0;
+		min-height: 100%;
+	}
+
+	:where(h1, h2, h3, h4, h5, h6, p, figure, blockquote, dl, dd) {
+		margin: 0;
+	}
+
+	:where(ul, ol) {
+		margin: 0;
+		padding: 0;
+	}
+
+	:where(img, picture, video, canvas, svg) {
+		display: block;
+		max-width: 100%;
+	}
+
+	:where(input, button, textarea, select) {
+		font: inherit;
+		color: inherit;
+	}
+
+	:where(table) {
+		border-collapse: collapse;
+		border-spacing: 0;
+	}
+}

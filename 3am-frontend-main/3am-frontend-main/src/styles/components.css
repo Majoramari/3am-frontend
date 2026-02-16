@@ -1,0 +1,40 @@
+@layer components {
+	.page-section.hero {
+		display: grid;
+		gap: 2.4rem;
+		padding: 6rem 2.4rem;
+		color: #f2f2f2;
+		justify-items: center;
+		text-align: center;
+	}
+
+	img.hero-media {
+		width: min(72rem, 100%);
+		height: auto;
+		border-radius: 2.4rem;
+	}
+}
+/* for  cart page style */
+@layer components {
+    .loading-screen {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        gap: 20px;
+    }
+
+    .loading-screen p {
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        color: #666;
+        animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.4; }
+    }
+}
