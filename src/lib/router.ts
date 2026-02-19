@@ -1,14 +1,14 @@
 import { APP_TITLE } from "@content/constants";
 import type { ViewInstance } from "@lib/view";
 
-export type Route = {
+type Route = {
 	title: string;
 	create: () => ViewInstance;
 };
 
 export type RouteMap = Record<string, Route>;
 
-export type Router = {
+type Router = {
 	start(): void;
 	stop(): void;
 	navigate(path: string): void;
@@ -67,7 +67,7 @@ export const createRouter = (
 
 		current = view;
 
-		onRouteChange?.(resolved.key);
+		onRouteChange?.(path);
 	};
 
 	const navigate = (path: string): void => {

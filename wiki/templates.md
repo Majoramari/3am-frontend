@@ -27,15 +27,21 @@ Examples:
 
 ## `html` vs `this.tpl`
 
-- Use `this.tpl` inside a `View` when the template contains other `View` instances. It renders them and cleans them up.
-- Use `html` when you are outside a `View`, or when the template only has text, numbers, or DOM nodes.
+- Use `this.tpl` inside a `View` when the template may contain nested `View` instances. It handles their render/cleanup lifecycle.
+- Use `html` when you are outside a `View`, or when you only need text/numbers/DOM nodes.
 
 ```ts
 // Inside a View
+import { Button } from "@components/button";
+
 render(): DocumentFragment {
 	return this.tpl`
 		<section class="actions">
-			${new Button({ label: "Primary", variant: "primary" })}
+			${new Button({
+				label: "Demo Drive",
+				variant: "cta",
+				href: "/demo",
+			})}
 		</section>
 	`;
 }
@@ -49,6 +55,32 @@ export const badge = (text: string) => html`
 ```
 
 Rule: if a template holds a `View`, use `this.tpl`. Otherwise `html` is enough.
+
+## Rendering lists
+
+You can map directly to arrays of component instances:
+
+```ts
+${items.map((item) =>
+	new Button({
+		label: item.label,
+		variant: "text",
+		href: item.href,
+	}),
+)}
+```
+
+You can also map to arrays of `View` instances:
+
+```ts
+${cards.map((card) =>
+	this.tpl`
+		<li>${new ProductCard(card)}</li>
+	`,
+)}
+```
+
+`this.tpl` normalizes arrays and nested `View` values for you.
 
 ## Basic use
 

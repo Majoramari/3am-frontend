@@ -13,18 +13,28 @@ Use this flow when contributing to the project:
    cd 3am-frontend
    git checkout -b my-change
    ```
-7. Edit the code and commit your updates.
+7. Edit the code and add tests when possible.
+   - If your change affects behavior, please add or update tests.
+   - Use the [Testing Guide](testing.md) for patterns and commands.
+8. Run project checks before committing.
+   ```bash
+   bun test
+   npm run build
+   npm run lint
+   ```
+9. Commit your updates.
    ```bash
    git add .
    git commit -m "feat: describe change"
    ```
    Note: Follow [Conventional Commits](https://www.conventionalcommits.org/) for commit messages.
-8. Push your branch to your fork.
+10. Push your branch to your fork.
    ```bash
    git push -u origin my-change
    ```
-9. Open a pull request to this [repository](https://github.com/Majoramari/3am-frontend).
+11. Open a pull request to this [repository](https://github.com/Majoramari/3am-frontend).
 
 **Navigation**
 - Back to [Index](index.md)
 - Related: [Guidelines](guidelines.md)
+- Related: [Testing Guide](testing.md)

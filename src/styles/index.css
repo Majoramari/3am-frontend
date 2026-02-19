@@ -4,6 +4,9 @@
 @import "./base.css";
 @import "./layout.css";
 @import "./components.css";
+@import "./components/button.css";
+@import "./components/media-card.css";
+@import "./components/navbar.css";
 @import "./utilities.css";
 
 @layer reset, base, layout, components, utilities;

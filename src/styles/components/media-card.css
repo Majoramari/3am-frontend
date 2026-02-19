@@ -1,6 +1,6 @@
 @layer components {
 	.media-card {
-		--media-card-bg-image: url("/placeholder.png");
+		--media-card-bg-image: url("/assets/shared/placeholder.png");
 		--media-card-bg-position: center;
 		--media-card-overlay-opacity: 1;
 		--media-card-radius: var(--radius-sm);

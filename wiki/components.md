@@ -1,18 +1,21 @@
 # Components
 
 Components are reusable UI parts in `src/components`. They can be used in any section or page.
+In this repo, all components are `View` subclasses.
+Use `renderMode: "once"` in a component constructor when the markup is static.
 
 **Where It Fits**
 - Use components for things you will reuse (buttons, cards, nav).
+- For prebuilt, ready-to-use components, see [Ready Components](ready-components.md).
 - For page-only blocks, see [Sections](sections.md).
 - For full pages, see [Pages](pages.md).
 
-## Create a component
+## Create a `View` component
 
 1. Make a file in `src/components`, for example `src/components/footer.ts`.
 2. Extend `View` with the HTML tag you need.
-3. Write `render()` with the `html` helper from `@lib/template`.
-4. Mount it from a parent view.
+3. Write `render()` with `this.tpl` or `html` from `@lib/template`.
+4. Render it from a parent `View`.
 
 ```ts
 import { html } from "@lib/template";
@@ -31,27 +34,71 @@ export class Footer extends View<"footer"> {
 }
 ```
 
-## Use a component
+## Use a `View` component
 
-Mount it and let the parent clean it up:
-
-```ts
-this.mountChild(new Footer());
-```
-
-## Put a component in a template
-
-Inside a `View`, use `this.tpl` so the component is rendered and cleaned up for you:
+Inside another `View`, render it with `this.tpl`:
 
 ```ts
 render(): DocumentFragment {
 	return this.tpl`
-		<section class="actions">
+		<section class="layout">
 			${new Footer()}
 		</section>
 	`;
 }
 ```
+
+`this.tpl` handles rendering and lifecycle cleanup for nested `View` instances.
+
+## Use a ready component
+
+Ready components are usually class-based and can be used directly inside `this.tpl`.
+
+```ts
+import { Button } from "@components/button";
+
+render(): DocumentFragment {
+	return this.tpl`
+		<section class="actions">
+			${new Button({
+				label: "Demo Drive",
+				variant: "cta",
+				href: "/demo",
+			})}
+		</section>
+	`;
+}
+```
+
+## Put a list of components in a template
+
+Both patterns work in lists:
+
+```ts
+import { MediaCard } from "@components/media-card";
+
+render(): DocumentFragment {
+	return this.tpl`
+		<ul>
+			${cards.map((card) => new MediaCard(card))}
+		</ul>
+	`;
+}
+```
+
+And for `View` subclasses:
+
+```ts
+render(): DocumentFragment {
+	return this.tpl`
+		<section class="cards">
+			${items.map((item) => new ProductCard(item))}
+		</section>
+	`;
+}
+```
+
+`this.tpl` handles arrays, DOM nodes, and nested `View` instances.
 
 ## Register events with cleanup
 
@@ -96,7 +143,7 @@ export class Counter extends View<"div"> {
 
 **Navigation**
 - Back to [Index](index.md)
-- Next: [Sections](sections.md)
+- Next: [Ready Components](ready-components.md)
 - Related: [Templates](templates.md)
 - Related: [Styling Guide](styles.md)
 - Related: [Guidelines](guidelines.md)

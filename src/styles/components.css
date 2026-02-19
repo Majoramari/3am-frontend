@@ -1,4 +1,19 @@
 @layer components {
+	.home-page {
+		position: relative;
+		isolation: isolate;
+		min-height: 100vh;
+		overflow: hidden;
+	}
+
+	.home-page::before {
+		content: "";
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		background: url("/assets/shared/placeholder.png") center / cover no-repeat;
+	}
+
 	.page-section.hero {
 		display: grid;
 		gap: 2.4rem;

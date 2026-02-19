@@ -6,8 +6,8 @@ Rules to keep code consistent and safe.
 
 1. Components are reusable, sections belong to one page.
 2. Pages assemble sections and are listed in `src/app/routes.ts`.
-3. Use `this.tpl` when a template needs to embed a component.
-4. Use `this.mountChild()` when a child view should follow the parent lifecycle.
+3. Use `this.tpl` when a template embeds components or sections.
+4. Prefer ready components (for example `new Button(...)`) for simple stateless UI nodes.
 
 ## Styling
 

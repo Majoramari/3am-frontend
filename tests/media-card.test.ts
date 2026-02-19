@@ -16,7 +16,7 @@ describe("MediaCard", () => {
 		const card = new MediaCard({
 			label: "Services",
 			href: "/gears/services",
-				backgroundImage: "/placeholder.png",
+				backgroundImage: "/assets/shared/placeholder.png",
 		}).renderToNode();
 
 		expect(card.tagName.toLowerCase()).toBe("a");
@@ -24,7 +24,7 @@ describe("MediaCard", () => {
 		expect(card.getAttribute("href")).toBe("/gears/services");
 		expect(card.dataset.overlay).toBe("on");
 		expect(card.getAttribute("style")).toContain(
-				'--media-card-bg-image: url("/placeholder.png")',
+				'--media-card-bg-image: url("/assets/shared/placeholder.png")',
 		);
 		expect(card.getAttribute("style")).toContain(
 			"--media-card-bg-position: center",

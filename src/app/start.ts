@@ -1,5 +1,5 @@
 import { routes } from "@app/routes";
-import { Navbar } from "@components/navbar";
+import Navbar from "@components/navbar";
 import { createRouter } from "@lib/router";
 
 const isPlainLeftClick = (event: MouseEvent): boolean =>
@@ -44,7 +44,9 @@ export const startApp = (): void => {
 	main.className = "page";
 	app.appendChild(main);
 
-	const router = createRouter(main, routes, (path) => navbar.setActive(path));
+	const router = createRouter(main, routes, (path) => {
+		navbar.setCurrentPath(path);
+	});
 
 	app.addEventListener("click", (event) => {
 		const link = getInternalLink(event);

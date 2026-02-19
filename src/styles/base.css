@@ -1,12 +1,41 @@
 @font-face {
 	font-family: "Adventure";
-	src: url("/nav/font.otf") format("opentype");
+	src: url("/assets/nav/font.otf") format("opentype");
+	font-display: swap;
+	ascent-override: 95%;
+	descent-override: 5%;
+	line-gap-override: 0;
+}
+
+@font-face {
+	font-family: "Model";
+	src: url("/assets/nav/model_font.otf") format("opentype");
+	font-display: swap;
 }
 
 @layer base {
 	:root {
-		--text-color: #ffffff;
-		--background: #000000;
+		--color-white: #ffffff;
+		--color-black: #000000;
+		--text-color: var(--color-white);
+		--background: var(--color-black);
+		--accent-color: #ac9670;
+
+		--radius-sm: 1.2rem;
+		--radius-md: 1.8rem;
+		--radius-lg: 2.4rem;
+		--radius-pill: 999rem;
+
+		--space-2xs: 0.4rem;
+		--space-xs: 0.8rem;
+		--space-sm: 1.2rem;
+		--space-md: 1.6rem;
+		--space-lg: 2.4rem;
+
+		--transition-fast: 160ms;
+		--transition-base: 220ms;
+		--transition-slow: 320ms;
+		--ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
 	}
 
 	html {
@@ -16,8 +45,20 @@
 	body {
 		font-family: "Adventure", sans-serif;
 		font-size: 1.6rem;
+		line-height: 1.3;
 		color: var(--text-color);
 		background: var(--background);
+	}
+
+	:where(h1, h2, h3, h4, h5, h6) {
+		line-height: 1.08;
+	}
+
+	@supports (text-box-trim: trim-both) {
+		:where(h1, h2, h3, h4, h5, h6, p, a, button, span, label) {
+			text-box-trim: trim-both;
+			text-box-edge: cap alphabetic;
+		}
 	}
 
 	@media (prefers-reduced-motion: reduce) {
