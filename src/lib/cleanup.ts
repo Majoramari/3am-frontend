@@ -1,4 +1,4 @@
-export type Cleanup = () => void;
+type Cleanup = () => void;
 
 export class CleanupBag {
 	private tasks: Cleanup[] = [];

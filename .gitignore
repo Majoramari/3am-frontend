@@ -9,6 +9,7 @@ lerna-debug.log*
 
 node_modules
 dist
+personal_wiki
 dist-ssr
 *.local
 

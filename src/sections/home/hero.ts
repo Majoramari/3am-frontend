@@ -8,7 +8,6 @@ export class HomeHeroSection extends View<"section"> {
 
 	render(): DocumentFragment {
 		return html`
-			<h1>Hello World</h1>
 		`;
 	}
 }

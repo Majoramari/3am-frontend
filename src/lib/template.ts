@@ -66,18 +66,27 @@ const toNode = (value: TemplateValue): Node | null => {
 
 const replaceSlots = (fragment: DocumentFragment, slots: Node[]): void => {
 	const walker = document.createTreeWalker(fragment, NodeFilter.SHOW_COMMENT);
+	const slotComments: Comment[] = [];
+
+	// Collect first, then replace.
+	// Replacing nodes while a TreeWalker is actively traversing can cause
+	// subsequent comment nodes to be skipped in some runtimes.
 	let current = walker.nextNode() as Comment | null;
 	while (current) {
 		if (current.data.startsWith("slot:")) {
-			const index = Number(current.data.slice(5));
-			const replacement = slots[index];
-			if (replacement) {
-				current.replaceWith(replacement);
-			} else {
-				current.remove();
-			}
+			slotComments.push(current);
 		}
 		current = walker.nextNode() as Comment | null;
+	}
+
+	for (const comment of slotComments) {
+		const index = Number(comment.data.slice(5));
+		const replacement = slots[index];
+		if (replacement) {
+			comment.replaceWith(replacement);
+			continue;
+		}
+		comment.remove();
 	}
 };
 
