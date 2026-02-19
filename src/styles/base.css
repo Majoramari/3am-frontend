@@ -1,3 +1,8 @@
+@font-face {
+	font-family: "Adventure";
+	src: url("/nav/font.otf") format("opentype");
+}
+
 @layer base {
 	:root {
 		--text-color: #ffffff;
@@ -9,7 +14,7 @@
 	}
 
 	body {
-		font-family: "Roboto", sans-serif;
+		font-family: "Adventure", sans-serif;
 		font-size: 1.6rem;
 		color: var(--text-color);
 		background: var(--background);
