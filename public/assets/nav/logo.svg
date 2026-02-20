@@ -1,27 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Created with Inkscape (http://www.inkscape.org/) -->
-
 <svg
-   width="135.8718mm"
-   height="29.60853mm"
-   viewBox="0 0 135.8718 29.60853"
-   version="1.1"
-   id="svg1"
-   xmlns="http://www.w3.org/2000/svg"
-   xmlns:svg="http://www.w3.org/2000/svg">
-  <defs
-     id="defs1" />
-  <g
-     id="layer1">
-    <text
-       xml:space="preserve"
-       style="font-size:50.8px;line-height:1.4;font-family:'Noto Sans Arabic';-inkscape-font-specification:'Noto Sans Arabic';text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#ffffff;stroke:#ffffff;stroke-width:0.264583"
-       x="68.010315"
-       y="29.476236"
-       id="text1"><tspan
-         id="tspan1"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:50.8px;font-family:'Ultimate Gear Slant';-inkscape-font-specification:'Ultimate Gear Slant';stroke-width:0.264583"
-         x="68.010315"
-         y="29.476236">3AM</tspan></text>
-  </g>
+	width="135.8718mm"
+	height="29.60853mm"
+	viewBox="0 0 135.8718 29.60853"
+	version="1.1"
+	xmlns="http://www.w3.org/2000/svg"
+	xmlns:svg="http://www.w3.org/2000/svg"
+>
+	<g>
+		<path
+			fill="#ffffff"
+			stroke="#ffffff"
+			stroke-width="0.264583"
+			d="m 34.461976,29.476236 3.91914,-4.787304 1.364258,-5.109766 -1.339453,-4.787304 3.894336,-4.7625 0.496093,-1.8603519 H 34.734827 L 33.841858,11.492838 H 17.148304 l -3.943945,4.787305 -0.471289,1.835547 h 19.347656 l -1.265039,4.71289 H 5.5645151 L 0.13228862,29.476236 Z M 43.168421,6.7551429 43.664515,4.9195961 42.325061,0.13229147 H 7.9953744 L 9.855726,6.7551429 Z M 77.746155,29.476236 80.15221,20.521744 74.372718,0.15709616 H 53.21432 L 54.925843,6.1598304 43.168421,20.521744 40.762367,29.476236 h 27.285156 l 1.761132,-6.622851 H 50.585023 l 0.42168,-1.537891 11.906249,-14.5355464 h 4.836914 l 4.117578,14.5355464 -2.182812,8.160742 z m 50.130265,0 7.86309,-29.31913984 H 122.09693 L 110.21549,14.667838 106.12271,0.15709616 H 88.833845 c 0.620117,2.20761714 1.240234,4.41523434 1.860351,6.62285144 h 9.177735 L 104.18795,22.03483 h 8.08632 L 124.77584,6.7799476 h 1.11621 L 119.8149,29.476236 Z m -35.197849,0 5.630664,-21.059179 h -8.061523 l -5.630664,21.059179 z"
+			aria-label="3AM"
+		/>
+	</g>
 </svg>
