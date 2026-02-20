@@ -1,16 +1,15 @@
 @font-face {
 	font-family: "Adventure";
 	src: url("/assets/nav/font.otf") format("opentype");
-	font-display: swap;
+	font-display: block;
 	ascent-override: 95%;
 	descent-override: 5%;
-	line-gap-override: 0;
 }
 
 @font-face {
 	font-family: "Model";
 	src: url("/assets/nav/model_font.otf") format("opentype");
-	font-display: swap;
+	font-display: block;
 }
 
 @layer base {

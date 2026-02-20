@@ -4,9 +4,31 @@
     <meta charset="UTF-8" />
 <!--    <link rel="icon" type="image/svg+xml" href="/vite.svg" />-->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="preload"
+      href="/assets/nav/font.otf"
+      as="font"
+      type="font/otf"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/assets/nav/model_font.otf"
+      as="font"
+      type="font/otf"
+      crossorigin
+    />
+    <link rel="preload" href="/assets/shared/placeholder.png" as="image" type="image/png" />
+    <link rel="stylesheet" href="/bootloader.css" />
     <title>3AM</title>
   </head>
   <body>
+    <div id="boot-loader" role="status" aria-live="polite" aria-label="Loading page">
+      <p class="boot-loader__status">Ignite the Night</p>
+      <div class="boot-loader__progress" aria-hidden="true">
+        <span class="boot-loader__progress-fill"></span>
+      </div>
+    </div>
     <div id="app"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>

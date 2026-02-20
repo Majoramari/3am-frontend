@@ -1,5 +1,5 @@
 import { Button, type ButtonVariant } from "@components/button";
-import { MediaCard, type MediaCardConfig } from "@components/media-card";
+import { MediaCard, type MediaCardConfig } from "@components/mediaCard";
 import { View } from "@lib/view";
 
 type NavMenuName = "dusk" | "dawn" | "gears";
