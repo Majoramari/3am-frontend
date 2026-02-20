@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 
-import { MediaCard } from "../src/components/media-card";
+import { MediaCard } from "../src/components/mediaCard";
 import { installDom, resetDom } from "./helpers/dom";
 
 describe("MediaCard", () => {
