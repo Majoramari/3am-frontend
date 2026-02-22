@@ -9,7 +9,7 @@ export type LazyVideoSource = {
 	media?: string;
 };
 
-export type LazyVideoConfig = {
+type LazyVideoBaseConfig = {
 	sources: ReadonlyArray<LazyVideoSource>;
 	className?: string;
 	poster?: string;
@@ -23,6 +23,23 @@ export type LazyVideoConfig = {
 	attrs?: AttrMap;
 };
 
+type LazyVideoSingleSourceConfig = Omit<LazyVideoBaseConfig, "sources"> & {
+	src: string;
+	type?: string;
+	media?: string;
+	sources?: never;
+};
+
+type LazyVideoMultiSourceConfig = LazyVideoBaseConfig & {
+	src?: never;
+	type?: never;
+	media?: never;
+};
+
+export type LazyVideoConfig =
+	| LazyVideoSingleSourceConfig
+	| LazyVideoMultiSourceConfig;
+
 export class LazyVideo extends View<"video"> {
 	private static readonly DEFAULT_PLACEHOLDER_POSTER =
 		"/assets/shared/placeholder.png";
@@ -30,7 +47,8 @@ export class LazyVideo extends View<"video"> {
 	private readonly sources: ReadonlyArray<LazyVideoSource>;
 
 	constructor(config: LazyVideoConfig) {
-		if (config.sources.length === 0) {
+		const sources = LazyVideo.toSources(config);
+		if (sources.length === 0) {
 			throw new Error("LazyVideo requires at least one source");
 		}
 
@@ -40,7 +58,7 @@ export class LazyVideo extends View<"video"> {
 			dataset: LazyVideo.toDataset(config),
 			renderMode: "once",
 		});
-		this.sources = config.sources;
+		this.sources = sources;
 	}
 
 	render(): DocumentFragment {
@@ -97,6 +115,22 @@ export class LazyVideo extends View<"video"> {
 		return {
 			lazyPoster: config.poster,
 		};
+	}
+
+	private static toSources(
+		config: LazyVideoConfig,
+	): ReadonlyArray<LazyVideoSource> {
+		if ("sources" in config && config.sources) {
+			return config.sources;
+		}
+
+		return [
+			{
+				src: config.src,
+				type: config.type,
+				media: config.media,
+			},
+		];
 	}
 
 	private static createSourceNode(sourceConfig: LazyVideoSource): HTMLSourceElement {
