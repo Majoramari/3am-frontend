@@ -1,5 +1,6 @@
 import { routes } from "@app/routes";
 import Navbar from "@components/navbar";
+import { createLazyMediaController } from "@lib/lazyMedia";
 import { createRouter } from "@lib/router";
 
 const isPlainLeftClick = (event: MouseEvent): boolean =>
@@ -44,8 +45,10 @@ export const startApp = (): void => {
 	main.className = "page";
 	app.appendChild(main);
 
+	const lazyMedia = createLazyMediaController();
 	const router = createRouter(main, routes, (path) => {
 		navbar.setCurrentPath(path);
+		lazyMedia.scan(main);
 	});
 
 	document.addEventListener("click", (event) => {
@@ -59,5 +62,6 @@ export const startApp = (): void => {
 		router.navigate(href);
 	});
 
+	lazyMedia.scan(app);
 	router.start();
 };
