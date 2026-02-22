@@ -50,6 +50,12 @@ const MOBILE_SIGN_IN_ITEM: MobileNavItem = {
 	href: "/signin",
 };
 
+const NAV_MEGA_PLACEHOLDER_IMAGE = "/assets/shared/placeholder.png";
+const NAV_MEGA_MEDIA_SOURCES = {
+	dusk: "/assets/dusk/dusk_transparent.webp",
+	dawn: "/assets/shared/placeholder.png",
+} as const satisfies Record<Exclude<NavMenuName, "gears">, string>;
+
 /**
  * Gears card data lives in one place so updates are simple:
  * - move text with `textAnchor` + optional offsets
@@ -62,6 +68,7 @@ const GEARS_CARDS: ReadonlyArray<MediaCardConfig> = [
 		href: "/gears/autonomous",
 		className: "nav-gears-card-autonomous",
 		backgroundImage: "/assets/shared/placeholder.png",
+		deferBackgroundLoad: true,
 		backgroundPosition: "right 20% center",
 		textAnchor: "top-center",
 		textSize: "3rem",
@@ -74,6 +81,7 @@ const GEARS_CARDS: ReadonlyArray<MediaCardConfig> = [
 		href: "/gears/services",
 		className: "nav-gears-card-services",
 		backgroundImage: "/assets/shared/placeholder.png",
+		deferBackgroundLoad: true,
 		backgroundPosition: "left 20% center",
 		textAnchor: "bottom-left",
 		textSize: "1.6rem",
@@ -86,6 +94,7 @@ const GEARS_CARDS: ReadonlyArray<MediaCardConfig> = [
 		href: "/gears/chargers",
 		className: "nav-gears-card-chargers",
 		backgroundImage: "/assets/shared/placeholder.png",
+		deferBackgroundLoad: true,
 		backgroundPosition: "center",
 		textAnchor: "bottom-left",
 		textSize: "1.6rem",
@@ -198,6 +207,7 @@ class Navbar extends View<"nav"> {
 	 * Pending close timer for delayed mega menu dismissal.
 	 */
 	private closeMenuTimerId: number | null = null;
+	private readonly loadedMenuMedia = new Set<NavMenuName>();
 
 	constructor() {
 		super("nav", { className: "nav-shell" });
@@ -352,7 +362,8 @@ class Navbar extends View<"nav"> {
 						<a class="nav-mega-media" href="/dusk">
 							<img
 								class="nav-mega-image"
-								src="/assets/dusk/dusk_transparent.webp"
+								src="${NAV_MEGA_PLACEHOLDER_IMAGE}"
+								data-deferred-src="${NAV_MEGA_MEDIA_SOURCES.dusk}"
 								alt="Dusk showcase"
 								loading="lazy"
 							/>
@@ -382,7 +393,8 @@ class Navbar extends View<"nav"> {
 						<a class="nav-mega-media" href="/dawn">
 							<img
 								class="nav-mega-image"
-								src="/assets/shared/placeholder.png"
+								src="${NAV_MEGA_PLACEHOLDER_IMAGE}"
+								data-deferred-src="${NAV_MEGA_MEDIA_SOURCES.dawn}"
 								alt="Dawn showcase"
 								loading="lazy"
 							/>
@@ -648,11 +660,55 @@ class Navbar extends View<"nav"> {
 
 		this.activeMenu = menu;
 		if (menu) {
+			this.ensureMenuMediaLoaded(menu);
 			this.element.dataset.activeMenu = menu;
 			return;
 		}
 
 		delete this.element.dataset.activeMenu;
+	}
+
+	private ensureMenuMediaLoaded(menu: NavMenuName): void {
+		if (this.loadedMenuMedia.has(menu)) {
+			return;
+		}
+
+		const megaPanel = this.element.querySelector<HTMLElement>(
+			`.nav-mega[data-menu="${menu}"]`,
+		);
+		if (!megaPanel) {
+			this.loadedMenuMedia.add(menu);
+			return;
+		}
+
+		const deferredImages =
+			megaPanel.querySelectorAll<HTMLImageElement>("img[data-deferred-src]");
+		for (const image of deferredImages) {
+			const deferredSrc = image.dataset.deferredSrc;
+			if (!deferredSrc) {
+				continue;
+			}
+
+			image.setAttribute("src", deferredSrc);
+			delete image.dataset.deferredSrc;
+		}
+
+		const deferredBackgroundNodes =
+			megaPanel.querySelectorAll<HTMLElement>("[data-deferred-bg-src]");
+		for (const node of deferredBackgroundNodes) {
+			const deferredBackgroundSrc = node.dataset.deferredBgSrc;
+			if (!deferredBackgroundSrc) {
+				continue;
+			}
+
+			node.style.setProperty(
+				"--media-card-bg-image",
+				`url("${deferredBackgroundSrc}")`,
+			);
+			delete node.dataset.deferredBgSrc;
+		}
+
+		this.loadedMenuMedia.add(menu);
 	}
 
 	/**

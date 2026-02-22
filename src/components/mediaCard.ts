@@ -16,6 +16,7 @@ export type MediaCardConfig = {
 	href: string;
 	className?: string;
 	backgroundImage: string;
+	deferBackgroundLoad?: boolean;
 	backgroundPosition?: string;
 	textAnchor?: MediaCardTextAnchor;
 	textOffsetX?: string;
@@ -40,14 +41,17 @@ export class MediaCard extends View<"a"> {
 	private readonly labelStyle: string;
 
 	constructor(config: MediaCardConfig) {
+		const deferredBackgroundImage = MediaCard.toDeferredBackgroundImage(config);
+
 		super("a", {
 			className: MediaCard.toMediaCardClassName(config),
 			attrs: {
 				href: config.href,
-				style: MediaCard.toCardStyle(config),
+				style: MediaCard.toCardStyle(config, deferredBackgroundImage),
 			},
 			dataset: {
 				overlay: MediaCard.toOverlayDatasetValue(config.withOverlay),
+				deferredBgSrc: deferredBackgroundImage,
 			},
 			renderMode: "once",
 		});
@@ -74,13 +78,23 @@ export class MediaCard extends View<"a"> {
 		return ["media-card", config.className ?? ""].filter(Boolean).join(" ");
 	}
 
-	private static toCardStyle(config: MediaCardConfig): string {
-		return [
-			`--media-card-bg-image: url("${config.backgroundImage}")`,
+	private static toDeferredBackgroundImage(
+		config: MediaCardConfig,
+	): string | undefined {
+		return config.deferBackgroundLoad ? config.backgroundImage : undefined;
+	}
+
+	private static toCardStyle(
+		config: MediaCardConfig,
+		deferredBackgroundImage: string | undefined,
+	): string {
+		const styleRules = [
+			deferredBackgroundImage
+				? ""
+				: `--media-card-bg-image: url("${config.backgroundImage}")`,
 			`--media-card-bg-position: ${config.backgroundPosition ?? MediaCard.DEFAULT_BG_POSITION}`,
-		]
-			.filter(Boolean)
-			.join("; ");
+		];
+		return styleRules.filter(Boolean).join("; ");
 	}
 
 	private static toLabelStyle(config: MediaCardConfig): string {
