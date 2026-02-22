@@ -48,7 +48,7 @@ export const startApp = (): void => {
 	const lazyMedia = createLazyMediaController();
 	const router = createRouter(main, routes, (path) => {
 		navbar.setCurrentPath(path);
-		lazyMedia.scan(main);
+		lazyMedia.scan(main); // scan on route change
 	});
 
 	document.addEventListener("click", (event) => {
@@ -62,6 +62,6 @@ export const startApp = (): void => {
 		router.navigate(href);
 	});
 
-	lazyMedia.scan(app);
+	lazyMedia.scan(app); // initial scan
 	router.start();
 };

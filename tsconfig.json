@@ -15,7 +15,8 @@
 			"@components/*": ["src/components/*"],
 			"@content/*": ["src/content/*"],
 			"@pages/*": ["src/pages/*"],
-			"@sections/*": ["src/sections/*"]
+			"@sections/*": ["src/sections/*"],
+			"@assets/*": ["public/assets/*"]
 		},
 		"allowImportingTsExtensions": true,
 		"verbatimModuleSyntax": true,

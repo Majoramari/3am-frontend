@@ -63,6 +63,21 @@ describe("LazyVideo", () => {
 		expect(video.hasAttribute("data-lazy-poster")).toBe(false);
 	});
 
+	test("supports single-source mode with direct src/type fields", () => {
+		const video = new LazyVideo({
+			src: "/assets/dawn/hero_video.webm",
+			type: "video/webm",
+			controls: true,
+		}).renderToNode();
+
+		const source = video.querySelector("source");
+		expect(source).not.toBeNull();
+		expect(source?.getAttribute("data-lazy-src")).toBe(
+			"/assets/dawn/hero_video.webm",
+		);
+		expect(source?.getAttribute("type")).toBe("video/webm");
+	});
+
 	test("throws when no sources are provided", () => {
 		expect(() => {
 			new LazyVideo({

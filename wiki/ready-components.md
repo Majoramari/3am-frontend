@@ -135,21 +135,23 @@ ${new MediaCard({
 ## LazyImage
 
 Use this for heavy images below the fold without manually writing `data-lazy-*`.
+Config is fully typed, so your editor should autocomplete fields like `src`, `alt`, `srcset`, and `sizes`.
 
 ```ts
 import { LazyImage } from "@components/lazyImage";
+import duskHeroImageSrc from "@assets/dusk/dusk_transparent.webp";
 ```
 
 ```ts
 render(): DocumentFragment {
 	return this.tpl`
-		<section class="page-section">
-			${new LazyImage({
-				src: "/assets/dusk/hero.webp",
-				alt: "Dusk hero",
-				className: "hero-image",
-			})}
-		</section>
+			<section class="page-section">
+				${new LazyImage({
+					src: duskHeroImageSrc,
+					alt: "Dusk hero",
+					className: "hero-image",
+				})}
+			</section>
 	`;
 }
 ```
@@ -165,35 +167,43 @@ Useful fields:
 ## LazyVideo
 
 Use this for below-the-fold videos. It writes lazy source attributes for you.
+Config is fully typed, so your editor should autocomplete `src`, `type`, `poster`, and playback flags.
 
 ```ts
 import { LazyVideo } from "@components/lazyVideo";
+import dawnVideoSrc from "@assets/dusk/hero_video.webm";
+import dawnPosterSrc from "@assets/dusk/hero_endframe.webp";
 ```
 
 ```ts
 render(): DocumentFragment {
 	return this.tpl`
-		<section class="page-section">
-			${new LazyVideo({
-				poster: "/assets/dawn/video-poster.webp",
-				controls: true,
-				muted: true,
-				playsInline: true,
-				sources: [
-					{ src: "/assets/dawn/hero_video.webm", type: "video/webm" },
-				],
-			})}
-		</section>
+			<section class="page-section">
+				${new LazyVideo({
+					src: dawnVideoSrc,
+					type: "video/webm",
+					poster: dawnPosterSrc,
+					controls: true,
+					muted: true,
+					playsInline: true,
+				})}
+			</section>
 	`;
 }
 ```
 
 Useful fields:
-- `sources` array of video sources (required).
+- `src` direct single-source video URL (recommended default).
+- `type` optional MIME type for single-source mode.
+- `sources` optional array for multi-source mode.
 - `poster` optional real poster URL.
 - `placeholderPoster` optional placeholder poster.
 - `preload` optional preload mode (`"none"` default).
 - `controls`, `muted`, `loop`, `autoPlay`, `playsInline` optional flags.
+
+Path autocomplete tip:
+- Importing assets gives better editor autocomplete and safer refactors than hardcoded `"/assets/..."` strings.
+- Use the project alias for shorter imports: `@assets/...`.
 
 ## Advanced lazyMedia guide
 

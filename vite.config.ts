@@ -14,6 +14,7 @@ export default defineConfig({
 			"@content": fileURLToPath(new URL("./src/content", import.meta.url)),
 			"@pages": fileURLToPath(new URL("./src/pages", import.meta.url)),
 			"@sections": fileURLToPath(new URL("./src/sections", import.meta.url)),
+			"@assets": fileURLToPath(new URL("./public/assets", import.meta.url)),
 		},
 	},
 });
