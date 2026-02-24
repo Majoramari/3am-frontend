@@ -45,7 +45,10 @@ export const startApp = (): void => {
 	main.className = "page";
 	app.appendChild(main);
 
-	const lazyMedia = createLazyMediaController();
+	const lazyMedia = createLazyMediaController({
+		// Preload one slide ahead horizontally to avoid placeholder flashes in carousels.
+		rootMargin: "300px 300px",
+	});
 	const router = createRouter(main, routes, (path) => {
 		navbar.setCurrentPath(path);
 		lazyMedia.scan(main); // scan on route change

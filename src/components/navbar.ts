@@ -237,9 +237,11 @@ class Navbar extends View<"nav"> {
 
 		// Sync active-link state with the initial URL.
 		this.setCurrentPath(window.location.pathname);
+	}
 
-		// Ensure any pending timer is cleared if this view is destroyed.
-		this.cleanup.add(() => this.cancelMenuClose());
+	protected override onDestroy(): void {
+		// Why: this timeout is local component state, so clear it on teardown.
+		this.cancelMenuClose();
 	}
 
 	setCurrentPath(path: string): void {
@@ -517,11 +519,8 @@ class Navbar extends View<"nav"> {
 	};
 
 	private bindClickHandlers(): void {
-		const mobileToggle =
-			this.element.querySelector<HTMLButtonElement>(".nav-mobile-toggle");
-		if (mobileToggle) {
-			this.cleanup.on(mobileToggle, "click", this.handleMobileToggleClick);
-		}
+		const mobileToggle = this.$<HTMLButtonElement>(".nav-mobile-toggle");
+		this.cleanup.on(mobileToggle, "click", this.handleMobileToggleClick);
 
 		const navLinks =
 			this.element.querySelectorAll<HTMLAnchorElement>("a[href]");
@@ -762,22 +761,15 @@ class Navbar extends View<"nav"> {
 	}
 
 	private syncMobileMenuUi(): void {
-		const toggle =
-			this.element.querySelector<HTMLButtonElement>(".nav-mobile-toggle");
-		if (toggle) {
-			toggle.setAttribute("aria-expanded", String(this.isMobileMenuOpen));
-			toggle.setAttribute(
-				"aria-label",
-				this.isMobileMenuOpen
-					? "Close navigation menu"
-					: "Open navigation menu",
-			);
-		}
+		const toggle = this.$<HTMLButtonElement>(".nav-mobile-toggle");
+		toggle.setAttribute("aria-expanded", String(this.isMobileMenuOpen));
+		toggle.setAttribute(
+			"aria-label",
+			this.isMobileMenuOpen ? "Close navigation menu" : "Open navigation menu",
+		);
 
-		const panel = this.element.querySelector<HTMLElement>(".nav-mobile-panel");
-		if (panel) {
-			panel.setAttribute("aria-hidden", String(!this.isMobileMenuOpen));
-		}
+		const panel = this.$<HTMLElement>(".nav-mobile-panel");
+		panel.setAttribute("aria-hidden", String(!this.isMobileMenuOpen));
 	}
 
 	private isDesktopViewport(): boolean {

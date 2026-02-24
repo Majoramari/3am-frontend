@@ -21,6 +21,8 @@ export abstract class View<K extends keyof HTMLElementTagNameMap> {
 	private cleanupBag: CleanupBag | null = null;
 	private readonly renderMode: "always" | "once";
 	private hasRendered = false;
+	private isMounted = false;
+	private mountCheckQueued = false;
 
 	protected get cleanup(): CleanupBag {
 		if (!this.cleanupBag) {
@@ -70,6 +72,35 @@ export abstract class View<K extends keyof HTMLElementTagNameMap> {
 
 	abstract render(): Node | DocumentFragment;
 
+	/**
+	 * Called when this view's root element is connected to the DOM.
+	 * Override in subclasses for one-time setup that needs real DOM presence.
+	 */
+	protected onMount(): void {}
+
+	/**
+	 * Called right before the view is destroyed and removed from DOM.
+	 * Override in subclasses for teardown that should run before cleanup tasks.
+	 */
+	protected onDestroy(): void {}
+
+	/**
+	 * Typed query helper scoped to this view by default.
+	 * Throws if selector is missing to fail fast in development.
+	 */
+	protected $<T extends Element = HTMLElement>(
+		selector: string,
+		root: ParentNode = this.element,
+	): T {
+		const node = root.querySelector<T>(selector);
+		if (!node) {
+			throw new Error(
+				`Selector "${selector}" not found in ${this.constructor.name}`,
+			);
+		}
+		return node;
+	}
+
 	mount(parent: HTMLElement): void {
 		parent.appendChild(this.renderToNode());
 	}
@@ -86,11 +117,13 @@ export abstract class View<K extends keyof HTMLElementTagNameMap> {
 
 	renderToNode(): HTMLElementTagNameMap[K] {
 		if (this.renderMode === "once" && this.hasRendered) {
+			this.queueMountLifecycleCheck();
 			return this.element;
 		}
 
 		this.renderIntoElement();
 		this.hasRendered = true;
+		this.queueMountLifecycleCheck();
 		return this.element;
 	}
 
@@ -132,9 +165,35 @@ export abstract class View<K extends keyof HTMLElementTagNameMap> {
 	private renderIntoElement(): void {
 		this.cleanupBag?.run();
 		this.element.replaceChildren(this.render());
+		this.queueMountLifecycleCheck();
+	}
+
+	private queueMountLifecycleCheck(): void {
+		if (this.mountCheckQueued) {
+			return;
+		}
+		this.mountCheckQueued = true;
+
+		queueMicrotask(() => {
+			this.mountCheckQueued = false;
+
+			if (this.element.isConnected) {
+				if (!this.isMounted) {
+					this.isMounted = true;
+					this.onMount();
+				}
+				return;
+			}
+
+			this.isMounted = false;
+		});
 	}
 
 	destroy(): void {
+		if (this.isMounted) {
+			this.onDestroy();
+			this.isMounted = false;
+		}
 		this.cleanupBag?.run();
 		this.element.remove();
 		this.hasRendered = false;

@@ -1,3 +1,8 @@
+import {
+	hydrateDeferredImage,
+	hydrateDeferredSource,
+} from "@lib/lazyMediaHydration";
+
 const DEFAULT_ROOT_MARGIN = "300px 0px";
 
 const LAZY_SELECTOR = [
@@ -30,24 +35,7 @@ const applyDeferredImageAttributes = (element: Element): void => {
 		return;
 	}
 
-	const image = element as HTMLImageElement;
-	const lazySrcset = image.dataset.lazySrcset;
-	if (lazySrcset) {
-		image.srcset = lazySrcset;
-		delete image.dataset.lazySrcset;
-	}
-
-	const lazySizes = image.dataset.lazySizes;
-	if (lazySizes) {
-		image.sizes = lazySizes;
-		delete image.dataset.lazySizes;
-	}
-
-	const lazySrc = image.dataset.lazySrc;
-	if (lazySrc) {
-		image.src = lazySrc;
-		delete image.dataset.lazySrc;
-	}
+	hydrateDeferredImage(element as HTMLImageElement);
 };
 
 const applyDeferredSourceAttributes = (element: Element): boolean => {
@@ -55,24 +43,7 @@ const applyDeferredSourceAttributes = (element: Element): boolean => {
 		return false;
 	}
 
-	const source = element as HTMLSourceElement;
-	let changed = false;
-
-	const lazySrcset = source.dataset.lazySrcset;
-	if (lazySrcset) {
-		source.srcset = lazySrcset;
-		delete source.dataset.lazySrcset;
-		changed = true;
-	}
-
-	const lazySrc = source.dataset.lazySrc;
-	if (lazySrc) {
-		source.src = lazySrc;
-		delete source.dataset.lazySrc;
-		changed = true;
-	}
-
-	return changed;
+	return hydrateDeferredSource(element as HTMLSourceElement);
 };
 
 const applyDeferredBackground = (element: Element): void => {
