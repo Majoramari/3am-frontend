@@ -84,7 +84,7 @@ export default defineConfig({
 			},
 			{
 				icon: "linkedin",
-				link: "https://www.linkedin.com/",
+				link: "https://www.linkedin.com/in/majoramari/",
 			},
 		],
 	},

@@ -102,6 +102,14 @@ This split keeps behavior in TypeScript and design in CSS.
 
 For full styling flow, see [Styles](/architecture/styles).
 
+## Keep selectors and class names disciplined
+
+Component and section styles should use class selectors, not raw element selectors.
+
+Use modern CSS and BAM naming with module prefixes (for example, navbar classes start with `nav-`).
+
+For the required selector, modern CSS, and BAM rules with examples, follow [Styles](/architecture/styles).
+
 ## Prefer lazy media for heavy assets
 
 The project already has lazy media infrastructure. Use it.
