@@ -6,5 +6,6 @@
 @import "./components/mediaCard.css";
 @import "./components/navbar.css";
 @import "./utilities.css";
+@import "./components/video-gallery.css";
 
 @layer reset, base, layout, components, utilities;

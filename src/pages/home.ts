@@ -13,3 +13,4 @@ export class HomePage extends View<"section"> {
 		`;
 	}
 }
+
