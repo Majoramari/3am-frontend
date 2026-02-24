@@ -31,6 +31,34 @@ If the change is global layout behavior, use `src/styles/layout.css`.
 
 If the change is a token/default, use `src/styles/base.css`.
 
+## Selector and naming rules (required)
+
+Use class selectors for component and section styling. Do not style by raw elements (`div`, `span`, `a`, `li`, etc.) in component/section files.
+
+Allowed places for element selectors are global foundation files only (`reset.css`, `base.css`, and layout-level defaults when needed).
+
+Use modern CSS primitives before fallback-heavy patterns:
+
+- custom properties for tokens and component API values
+- logical properties (`margin-inline`, `padding-block`, etc.)
+- responsive sizing with `clamp()`/`min()`/`max()`
+- low-specificity helpers like `:where()`/`:is()` when useful
+
+Use BAM naming with a module prefix.
+
+Class pattern:
+
+- `<module>-<block>`
+- `<module>-<block>__<element>`
+- `<module>-<block>--<modifier>`
+
+Examples:
+
+- navbar module: `nav-shell`, `nav-menu__item`, `nav-menu--open`
+- hero module: `hero-slide`, `hero-slide__image`, `hero-slide--active`
+
+This keeps selectors predictable and prevents cross-module leakage.
+
 ## Build and style a new component (real workflow)
 
 Assume you create `src/components/tagPill.ts`.
