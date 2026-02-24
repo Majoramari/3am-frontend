@@ -16,12 +16,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  deploy:
-    name: Deploy Docs to GitHub Pages
+  build:
+    name: Build Docs Artifact
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - name: Checkout code
@@ -35,19 +32,32 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      - name: Setup GitHub Pages
+        id: pages
+        uses: actions/configure-pages@v5
+
       - name: Build docs
         run: bun run docs:build
         env:
-          DOCS_BASE: /${{ github.event.repository.name }}/
+          DOCS_BASE: "${{ steps.pages.outputs.base_path }}/"
 
-      - name: Setup GitHub Pages
-        uses: actions/configure-pages@v5
+      - name: Disable Jekyll processing in static output
+        run: touch docs/.vitepress/dist/.nojekyll
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: docs/.vitepress/dist
 
+  deploy:
+    name: Deploy Docs to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
