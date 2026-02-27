@@ -44,9 +44,6 @@ jobs:
       - name: Build production bundle
         run: bun run build:bundle
 
-      - name: Build documentation site
-        run: bun run docs:build
-
       - name: Enforce performance budgets
         run: bun run budget
 

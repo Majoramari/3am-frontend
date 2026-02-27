@@ -87,7 +87,7 @@ const installInstantImage = (): (() => void) => {
 			globalWithImage.Image = originalImage;
 			return;
 		}
-		delete globalWithImage.Image;
+		delete (globalWithImage as Partial<typeof globalWithImage>).Image;
 	};
 };
 

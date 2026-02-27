@@ -2,4 +2,9 @@
 	#app {
 		min-height: 100vh;
 	}
+
+	.page-section {
+		inline-size: 100%;
+		margin-inline: 0;
+	}
 }
