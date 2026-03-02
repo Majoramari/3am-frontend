@@ -1,0 +1,9 @@
+@layer sections {
+	.gears-page {
+		background-color: rebeccapurple;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		height: 100svh;
+	}
+}
