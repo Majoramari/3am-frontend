@@ -1,0 +1,32 @@
+@layer reset {
+	*,
+	*::before,
+	*::after {
+		margin: 0;
+		padding: 0;
+		box-sizing: border-box;
+	}
+
+	:where(img, picture, video, canvas, svg) {
+		display: block;
+		max-width: 100%;
+	}
+
+	:where(input, button, textarea, select) {
+		font: inherit;
+		color: inherit;
+	}
+
+	:where(a:any-link) {
+		color: inherit;
+		text-decoration: none;
+	}
+
+	:where(a:any-link:hover, a:any-link:active) {
+		text-decoration: none;
+	}
+
+	:where(li) {
+		list-style: none;
+	}
+}
