@@ -15,4 +15,11 @@ export const routes: RouteMap = {
 			return new NotFoundPage();
 		},
 	},
+	"/gears": {
+		title: "Gears",
+		create: async () => {
+			const { GearsPage } = await import("@pages/gears");
+			return new GearsPage();
+		},
+	},
 };
