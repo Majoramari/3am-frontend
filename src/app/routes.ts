@@ -8,6 +8,13 @@ export const routes: RouteMap = {
 			return new HomePage();
 		},
 	},
+	"/gears": {
+		title: "Gears",
+		create: async () => {
+			const { GearsPage } = await import("@pages/gears");
+			return new GearsPage();
+		},
+	},
 	"/404": {
 		title: "Not found",
 		create: async () => {
