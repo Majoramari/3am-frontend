@@ -1,0 +1,282 @@
+@layer sections {
+	/* ── Hero ── */
+	.gs-hero {
+		position: relative;
+		height: 75vh;
+		display: flex;
+		align-items: center;
+		overflow: hidden;
+		color: rgb(255 255 255);
+	}
+
+	.gs-hero__video {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		z-index: 1;
+	}
+
+	.gs-hero__overlay {
+		position: absolute;
+		inset: 0;
+		background: rgb(0 0 0 / 0.35);
+		z-index: 2;
+	}
+
+	.gs-hero__content {
+		position: relative;
+		z-index: 3;
+		width: 100%;
+		text-align: center;
+	}
+
+	.gs-hero__headline {
+		font-size: clamp(3.6rem, 6vw, 7.2rem);
+		font-weight: 600;
+	}
+
+	/* ── New to Shop ── */
+	.gs-new {
+		padding-block: 80px;
+		padding-inline: 60px;
+		background: rgb(247 247 247);
+	}
+
+	.gs-new__headline {
+		font-size: clamp(2rem, 3vw, 2.8rem);
+		font-weight: 600;
+		margin-block-end: 40px;
+        color: gray;
+	}
+
+	.gs-new__grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 28px;
+	}
+
+	.gs-new__item-desc {
+		font-size: 1.4rem;
+		color: rgb(68 68 68);
+		margin-block-end: 16px;
+		max-width: 320px;
+		line-height: 1.5;
+	}
+
+	.gs-new__item-card {
+		position: relative;
+		border-radius: 20px;
+		overflow: hidden;
+	}
+
+	.gs-new__item-image {
+		width: 100%;
+		height: 340px;
+		object-fit: cover;
+		display: block;
+	}
+
+	.gs-new__item-label {
+		position: absolute;
+		bottom: 16px;
+		left: 50%;
+		transform: translateX(-50%);
+		background: rgb(255 255 255 / 0.9);
+		color: rgb(0 0 0);
+		padding-block: 8px;
+		padding-inline: 18px;
+		border-radius: 999px;
+		font-size: 1.3rem;
+		white-space: nowrap;
+		font-weight: 500;
+	}
+
+	/* ── Service Centers ── */
+	.gs-service {
+		padding-block: 60px;
+		padding-inline: 60px;
+		background: rgb(240 244 245);
+	}
+
+	.gs-service__headline {
+		font-size: clamp(2rem, 3vw, 2.6rem);
+		font-weight: 600;
+		margin-block-end: 40px;
+		line-height: 1.4;
+        color: gray;
+	}
+
+	.gs-service__img-wrap {
+		position: relative;
+		width: 900px;
+		height: 500px;
+		border-radius: 24px;
+		overflow: hidden;
+		margin-inline: auto;
+	}
+
+	.gs-service__bg-image {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		display: block;
+	}
+
+	.gs-service__overlay-card {
+		position: absolute;
+		top: 50%;
+		right: 5%;
+		transform: translateY(-50%);
+		background: rgb(255 255 255);
+		border-radius: 20px;
+		padding: 20px;
+		width: 260px;
+		box-shadow: 0 8px 30px rgb(0 0 0 / 0.12);
+	}
+
+	.gs-service__card-image {
+		width: 100%;
+		height: 180px;
+		object-fit: contain;
+		background: rgb(245 245 245);
+		border-radius: 12px;
+		margin-block-end: 14px;
+		display: block;
+	}
+
+	.gs-service__card-name {
+		font-size: 1.5rem;
+		font-weight: 600;
+		margin-block-end: 4px;
+	}
+
+	.gs-service__card-price {
+		font-size: 1.4rem;
+		color: rgb(85 85 85);
+	}
+
+	/* ── Designed with Friends ── */
+	.gs-designed {
+		padding-block-start: 60px;
+		background: rgb(255 255 255);
+	}
+
+	.gs-designed__header {
+		padding-inline: 60px;
+		margin-block-end: 40px;
+	}
+
+	.gs-designed__headline {
+		font-size: clamp(2rem, 3vw, 2.6rem);
+		font-weight: 600;
+		margin-block-end: 12px;
+        color: gray;
+        margin-bottom: 40px;
+	}
+
+	.gs-designed__desc {
+		font-size: 1.4rem;
+		color: rgb(85 85 85);
+		max-width: 380px;
+		line-height: 1.6;
+	}
+
+	.gs-designed__scroll {
+		display: flex;
+		gap: 16px;
+   overflow-x: scroll;
+		padding-inline: 60px;
+		padding-block-end: 16px;
+		scrollbar-width: none;
+		-webkit-overflow-scrolling: touch;
+		cursor: grab;
+        scroll-snap-type: x mandatory;
+		&:active { cursor: grabbing; }
+		&::-webkit-scrollbar { display: none; }
+	}
+
+	.gs-designed__card {
+		min-width: 580px;
+		width: 580px;
+		height: 320px;
+		background: rgb(242 242 242);
+		border-radius: 20px;
+		overflow: hidden;
+		flex-shrink: 0;
+		display: flex;
+        color: grey;
+        scroll-snap-stop: always;
+	}
+
+	.gs-designed__card-info {
+		padding-block: 36px;
+		padding-inline: 28px;
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-end;
+		width: 260px;
+		flex-shrink: 0;
+	}
+
+	.gs-designed__card-brand {
+		font-size: 2rem;
+		font-weight: 600;
+		margin-block-end: 12px;
+		line-height: 1.3;
+	}
+
+	.gs-designed__card-desc {
+		font-size: 1.3rem;
+		color: rgb(68 68 68);
+		line-height: 1.6;
+		margin-block-end: 20px;
+		flex-grow: 1;
+		display: flex;
+		align-items: flex-end;
+	}
+
+	.gs-designed__card-btn {
+		padding-block: 11px;
+		padding-inline: 22px;
+		font-size: 1.3rem;
+		border-radius: 999px;
+		background: rgb(0 0 0);
+		color: rgb(255 255 255);
+		border: none;
+		cursor: pointer;
+		width: fit-content;
+	}
+
+	.gs-designed__card-image {
+		flex: 1;
+		height: 100%;
+		object-fit: cover;
+		display: block;
+		min-width: 0;
+	}
+
+	.gs-designed__scrollbar {
+		padding-inline: 60px;
+	}
+
+	/* ── Responsive ── */
+	@media (max-width: 734px) {
+		.gs-new { padding-inline: 20px; }
+		.gs-new__grid { grid-template-columns: 1fr; }
+		.gs-service { padding-inline: 20px; }
+		.gs-service__img-wrap { width: 100%; height: auto; }
+		.gs-service__overlay-card {
+			position: static;
+			transform: none;
+			margin-block-start: 16px;
+			width: 100%;
+		}
+		.gs-designed__header { padding-inline: 20px; }
+		.gs-designed__scroll { padding-inline: 20px; }
+		.gs-designed__card { min-width: 300px; width: 300px; height: auto; flex-direction: column; }
+		.gs-designed__card-info { width: 100%; }
+		.gs-designed__scrollbar { padding-inline: 20px; }
+	}
+}

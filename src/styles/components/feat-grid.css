@@ -1,0 +1,118 @@
+@layer components {
+	.feat-grid {
+		padding-block: 60px;
+		padding-inline: 80px;
+	}
+
+	.feat-grid__header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-block-end: 40px;
+	}
+
+	.feat-grid__pills {
+		display: flex;
+		gap: 16px;
+		flex-wrap: wrap;
+	}
+
+	.feat-grid__pill {
+		padding-block: 12px;
+		padding-inline: 22px;
+		border-radius: 999px;
+		border: none;
+		background: rgb(211 211 211);
+		font-size: 1.4rem;
+		cursor: pointer;
+		color: rgb(0 0 0);
+		transition: background 0.3s, color 0.3s;
+
+		&:hover {
+			background: rgb(0 0 0);
+			color: rgb(255 255 255);
+		}
+	}
+
+	.feat-grid__pill--active {
+		background: rgb(0 0 0);
+		color: rgb(255 255 255);
+	}
+
+	.feat-grid__view-all {
+		background: rgb(245 164 0);
+		border: none;
+		padding-block: 14px;
+		padding-inline: 26px;
+		border-radius: 999px;
+		font-weight: 600;
+		cursor: pointer;
+		font-size: 1.4rem;
+	}
+
+	.feat-grid__body {
+		display: flex;
+		flex-direction: column;
+		gap: 40px;
+	}
+
+	.feat-grid__group--hidden {
+		display: none;
+	}
+
+	.feat-grid__row--top {
+		display: grid;
+		grid-template-columns: 2fr 1fr;
+		gap: 28px;
+		margin-block-end: 30px;
+	}
+
+	.feat-grid__row--bottom {
+		display: flex;
+		gap: 28px;
+	}
+
+	.feat-grid__row--bottom .feat-grid__item {
+		flex: 1;
+	}
+
+	.feat-grid__card {
+		background: rgb(244 244 244);
+		border-radius: 28px;
+		overflow: hidden;
+	}
+
+	.feat-grid__card-image {
+		width: 100%;
+		height: 320px;
+		object-fit: cover;
+		display: block;
+	}
+
+	.feat-grid__item-name {
+		font-size: 1.4rem;
+		font-weight: 500;
+		margin-block-start: 14px;
+	}
+
+	.feat-grid__item-price {
+		font-size: 1.4rem;
+		color: rgb(85 85 85);
+        margin-top: 15px;
+	}
+
+	@media (max-width: 1068px) {
+		.feat-grid { padding-inline: 40px; }
+	}
+
+	@media (max-width: 734px) {
+		.feat-grid { padding-inline: 20px; }
+		.feat-grid__row--top { grid-template-columns: 1fr; }
+		.feat-grid__row--bottom { flex-direction: column; }
+		.feat-grid__pills { gap: 10px; }
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.feat-grid__pill { transition: none; }
+	}
+}

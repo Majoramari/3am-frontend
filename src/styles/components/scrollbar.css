@@ -1,0 +1,28 @@
+@layer components {
+	.scrollbar {
+		padding-block-start: 20px;
+	}
+
+	.scrollbar__track {
+		width: 260px;
+		height: 3px;
+		background: rgb(221 221 221);
+		border-radius: 999px;
+		position: relative;
+	}
+
+	.scrollbar__thumb {
+		width: 70px;
+		height: 3px;
+		background: rgb(0 0 0);
+		border-radius: 999px;
+		position: absolute;
+		left: 0;
+		cursor: grab;
+		transition: left 0.1s linear;
+
+		&:active {
+			cursor: grabbing;
+		}
+	}
+}

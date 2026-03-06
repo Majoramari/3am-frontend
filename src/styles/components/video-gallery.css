@@ -1,0 +1,256 @@
+@layer components {
+	/* ── Root ── */
+	.vg-gallery {
+		width: 100%;
+		background: #000;
+		padding-block: 80px;
+		padding-inline: 20px;
+	}
+
+	/* ── Header ── */
+	.vg-gallery__header {
+		text-align: center;
+		margin-block-end: 60px;
+	}
+
+	.vg-gallery__headline {
+		font-size: clamp(3.2rem, 5vw, 5.6rem);
+		font-weight: 600;
+		letter-spacing: -0.015em;
+		color: rgb(255 255 255);
+	}
+
+	/* ── Controls Bar ── */
+	.vg-gallery__controls {
+		position: fixed;
+		bottom: 40px;
+		left: 50%;
+		transform: translateX(-50%);
+		z-index: 100;
+		display: flex;
+		align-items: center;
+		gap: 20px;
+		animation: vg-gallery-drop-down 2.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.8s backwards;
+	}
+
+	@keyframes vg-gallery-drop-down {
+		0%   { opacity: 0; transform: translateX(-50%) translateY(-400px) scale(0.2); }
+		40%  { opacity: 0.5; transform: translateX(-50%) translateY(-100px) scale(0.5); }
+		70%  { opacity: 1; transform: translateX(-50%) translateY(5px) scale(1.03); }
+		100% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+	}
+
+	.vg-gallery__controls-bg {
+		position: absolute;
+		inset: -12px;
+		background: rgb(0 0 0 / 0.72);
+		backdrop-filter: saturate(180%) blur(20px);
+		border-radius: 50px;
+		z-index: -1;
+	}
+
+	/* ── Dot Navigation ── */
+	.vg-gallery__dotnav {
+		position: relative;
+	}
+
+	.vg-gallery__dotnav-list {
+		display: flex;
+		gap: 8px;
+		list-style: none;
+		padding-block: 12px;
+		padding-inline: 20px;
+		margin: 0;
+	}
+
+	.vg-gallery__dot {
+		position: relative;
+	}
+
+	.vg-gallery__dot-link {
+		display: block;
+		width: 10px;
+		height: 10px;
+		background: rgb(255 255 255 / 0.4);
+		border-radius: 50%;
+		transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+		cursor: pointer;
+		text-decoration: none;
+		position: relative;
+		overflow: hidden;
+	}
+
+	.vg-gallery__dot-link:hover {
+		background: rgb(255 255 255 / 0.6);
+	}
+
+	.vg-gallery__dot--current .vg-gallery__dot-link {
+		background: rgb(255 255 255 / 0.3);
+		width: 32px;
+		border-radius: 5px;
+	}
+
+	.vg-gallery__dot-link::before {
+		content: '';
+		position: absolute;
+		inset-block: 0;
+		inset-inline-start: 0;
+		width: var(--vg-gallery-progress, 0%);
+		background: rgb(255 255 255);
+		border-radius: 5px;
+		transition: width 0.1s linear;
+	}
+
+	/* ── Play/Pause Button ── */
+	.vg-gallery__playpause-wrapper {
+		position: relative;
+	}
+
+	.vg-gallery__playpause-btn {
+		width: 51px;
+		height: 51px;
+		border: none;
+		background: transparent;
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 0;
+		position: relative;
+		z-index: 1;
+	}
+
+	.vg-gallery__playpause-btn:hover {
+		opacity: 0.8;
+	}
+
+	.vg-gallery__playpause-icon {
+		width: 60px;
+		height: 60px;
+		position: absolute;
+	}
+
+	.vg-gallery__playpause-icon--pause,
+	.vg-gallery__playpause-icon--replay {
+		display: none;
+	}
+
+	.vg-gallery__playpause-btn--playing .vg-gallery__playpause-icon--play   { display: none; }
+	.vg-gallery__playpause-btn--playing .vg-gallery__playpause-icon--pause  { display: block; }
+
+	.vg-gallery__playpause-btn--replay .vg-gallery__playpause-icon--play,
+	.vg-gallery__playpause-btn--replay .vg-gallery__playpause-icon--pause   { display: none; }
+	.vg-gallery__playpause-btn--replay .vg-gallery__playpause-icon--replay  { display: block; }
+
+	/* ── Viewport & Track ── */
+	.vg-gallery__viewport {
+		position: relative;
+		width: 100%;
+		overflow: hidden;
+		padding-inline: 40px;
+	}
+
+	.vg-gallery__track {
+		display: flex;
+		gap: 24px;
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+	}
+
+	/* ── Slide ── */
+	.vg-gallery__slide {
+		flex-shrink: 0;
+		width: calc(80% - 12px);
+		max-width: 900px;
+	}
+
+	.vg-gallery__slide-inner {
+		width: 100%;
+		background: rgb(29 29 31);
+		border-radius: 28px;
+		overflow: hidden;
+		position: relative;
+		opacity: 0.5;
+		transform: scale(0.95);
+		transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+		            transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+	}
+
+	.vg-gallery__slide--active .vg-gallery__slide-inner {
+		opacity: 1;
+		transform: scale(1);
+	}
+
+	.vg-gallery__slide-media {
+		position: relative;
+		width: 100%;
+		padding-block-end: 56.25%;
+		background: #000;
+	}
+
+	.vg-gallery__slide-video {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.vg-gallery__slide-caption-wrapper {
+		position: absolute;
+		bottom: 80px;
+		inset-inline: 80px;
+		z-index: 10;
+	}
+
+	.vg-gallery__slide-caption {
+		font-size: clamp(2.4rem, 4vw, 4.8rem);
+		font-weight: 600;
+		line-height: 1.1;
+		letter-spacing: -0.015em;
+		color: rgb(255 255 255);
+		text-shadow: 0 2px 8px rgb(0 0 0 / 0.5);
+	}
+
+	/* ── Responsive ── */
+	@media (max-width: 1068px) {
+		.vg-gallery__slide { width: calc(85% - 12px); }
+		.vg-gallery__slide-caption-wrapper { bottom: 60px; inset-inline: 60px; }
+		.vg-gallery__viewport { padding-inline: 30px; }
+	}
+
+	@media (max-width: 734px) {
+		.vg-gallery { padding-block: 60px; padding-inline: 0; }
+		.vg-gallery__header { margin-block-end: 40px; padding-inline: 20px; }
+		.vg-gallery__slide-inner { border-radius: 18px; }
+		.vg-gallery__slide-caption-wrapper { bottom: 40px; inset-inline: 40px; }
+		.vg-gallery__playpause-btn { width: 48px; height: 48px; }
+		.vg-gallery__playpause-icon { width: 18px; height: 18px; }
+		.vg-gallery__dotnav-list { gap: 6px; padding-inline: 16px; padding-block: 10px; }
+		.vg-gallery__dot-link { width: 8px; height: 8px; }
+		.vg-gallery__dot--current .vg-gallery__dot-link { width: 24px; }
+		.vg-gallery__track { gap: 16px; }
+		.vg-gallery__slide { width: calc(90% - 8px); }
+		.vg-gallery__viewport { padding-inline: 20px; }
+	}
+
+	/* ── Reduced motion ── */
+	@media (prefers-reduced-motion: reduce) {
+		.vg-gallery__controls { animation: none; }
+		.vg-gallery__slide-inner { transition: none; }
+		.vg-gallery__track { transition: none; }
+	}
+    .vg-gallery .visuallyhidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+}

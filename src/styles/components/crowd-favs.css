@@ -1,0 +1,25 @@
+@layer components {
+	.crowd-favs {
+		padding-block: 60px;
+		padding-inline: 60px;
+		background: rgb(247 247 247);
+	}
+
+	.crowd-favs__headline {
+		font-size: clamp(1.8rem, 2.5vw, 2.2rem);
+		font-weight: 600;
+		margin-block-end: 28px;
+        color: gray;
+	}
+
+	.crowd-favs__grid {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 24px;
+	}
+
+	@media (max-width: 734px) {
+		.crowd-favs { padding-inline: 20px; }
+		.crowd-favs__grid { grid-template-columns: 1fr; }
+	}
+}
