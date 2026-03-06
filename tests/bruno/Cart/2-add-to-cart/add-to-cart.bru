@@ -1,0 +1,29 @@
+meta {
+  name: 2. Add to Cart
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/Cart/items
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer {{accessToken}}
+}
+
+body:json {
+  {
+    "product_Id": {{productId}},
+    "quantity": 1
+  }
+}
+
+tests {
+  test("add to cart returns success", function () {
+    expect(res.getStatus()).to.be.within(200, 299);
+  });
+}

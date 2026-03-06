@@ -1,0 +1,21 @@
+meta {
+  name: 1. Get Dashboard
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/Dashboard
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+tests {
+  test("dashboard returns success", function () {
+    expect(res.getStatus()).to.be.within(200, 299);
+  });
+}

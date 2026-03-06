@@ -1,0 +1,22 @@
+meta {
+  name: 4. Get Products by Category
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/Product/category/{{categoryId}}
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+tests {
+  test("get by category returns array", function () {
+    expect(res.getStatus()).to.be.within(200, 299);
+    expect(res.getBody()).to.be.an("array");
+  });
+}

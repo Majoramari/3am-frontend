@@ -1,0 +1,56 @@
+meta {
+  name: 1. Confirm Payment
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/payment/confirm
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer {{accessToken}}
+}
+
+body:json {
+  {
+    "method": {{paymentMethod}},
+    "frontendUrl": "{{frontendUrl}}"
+  }
+}
+
+script:post-response {
+  const setInvoiceId = (value) => {
+    if (!value) return;
+    const invoiceId = String(value);
+    bru.setVar("invoiceId", invoiceId);
+    try {
+      bru.setEnvVar("invoiceId", invoiceId);
+    } catch (_) {}
+  };
+
+  const body = res.getBody();
+  if (!body) {
+    return;
+  }
+
+  if (body.invoiceId) {
+    setInvoiceId(body.invoiceId);
+    return;
+  }
+
+  if (body.externalPaymentId) {
+    setInvoiceId(body.externalPaymentId);
+  }
+}
+
+tests {
+  test("confirm payment returns success", function () {
+    expect(res.getStatus()).to.be.within(200, 299);
+    const body = res.getBody();
+    expect(body).to.be.an("object");
+  });
+}

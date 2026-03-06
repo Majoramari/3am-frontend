@@ -1,0 +1,35 @@
+meta {
+  name: 8. Checkout
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{baseUrl}}/Cart/checkout
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+script:post-response {
+  const body = res.getBody();
+  if (body && body.id) {
+    const orderId = String(body.id);
+    bru.setVar("orderId", orderId);
+    try {
+      bru.setEnvVar("orderId", orderId);
+    } catch (_) {}
+  }
+}
+
+tests {
+  test("checkout returns order", function () {
+    expect(res.getStatus()).to.be.within(200, 299);
+    const body = res.getBody();
+    expect(body).to.be.an("object");
+    expect(body).to.have.property("id");
+  });
+}

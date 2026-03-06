@@ -1,0 +1,40 @@
+meta {
+  name: 3. Get Cart After Add
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/Cart/mycart
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+script:post-response {
+  const body = res.getBody();
+  if (!body || !Array.isArray(body.cartItems) || body.cartItems.length === 0) {
+    return;
+  }
+
+  const firstItem = body.cartItems[0];
+  if (firstItem.id) {
+    const cartItemId = String(firstItem.id);
+    bru.setVar("cartItemId", cartItemId);
+    try {
+      bru.setEnvVar("cartItemId", cartItemId);
+    } catch (_) {}
+  }
+}
+
+tests {
+  test("cart contains at least one item", function () {
+    expect(res.getStatus()).to.be.within(200, 299);
+    const body = res.getBody();
+    expect(body).to.be.an("object");
+    expect(body.cartItems).to.be.an("array");
+  });
+}

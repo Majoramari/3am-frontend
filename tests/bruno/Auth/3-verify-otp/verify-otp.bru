@@ -1,0 +1,51 @@
+meta {
+  name: 3. Verify OTP
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/Auth/verify-otp
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "email": "{{testEmail}}",
+    "otpCode": "893313"
+  }
+}
+
+script:post-response {
+  const setVar = (name, value) => {
+    if (!value) return;
+    bru.setVar(name, value);
+    try {
+      bru.setEnvVar(name, value);
+    } catch (_) {}
+  };
+  
+  const body = res.getBody();
+  if (!body) {
+    return;
+  }
+  
+  setVar("accessToken", body.accessToken);
+  setVar("refreshToken", body.refreshToken);
+  setVar("refreshTokenExpiry", body.refreshTokenExpiry);
+}
+
+tests {
+  test("verify otp returns tokens", function () {
+    expect(res.getStatus()).to.be.within(200, 299);
+    const body = res.getBody();
+    expect(body).to.be.an("object");
+    expect(body).to.have.property("accessToken");
+    expect(body).to.have.property("refreshToken");
+  });
+}

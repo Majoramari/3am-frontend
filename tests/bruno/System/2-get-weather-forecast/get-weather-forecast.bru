@@ -1,0 +1,21 @@
+meta {
+  name: 2. Get Weather Forecast
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{hostUrl}}/WeatherForecast
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+tests {
+  test("weather forecast returns success", function () {
+    expect(res.getStatus()).to.be.within(200, 299);
+  });
+}

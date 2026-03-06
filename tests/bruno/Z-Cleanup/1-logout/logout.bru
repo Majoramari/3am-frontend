@@ -1,0 +1,21 @@
+meta {
+  name: 1. Logout
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/Auth/logout
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+tests {
+  test("logout returns success", function () {
+    expect(res.getStatus()).to.be.within(200, 299);
+  });
+}

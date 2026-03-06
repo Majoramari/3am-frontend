@@ -1,0 +1,33 @@
+meta {
+  name: 1. Get All Products
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/Product
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+script:post-response {
+  const body = res.getBody();
+  if (Array.isArray(body) && body.length > 0 && body[0].id) {
+    const productId = String(body[0].id);
+    bru.setVar("productId", productId);
+    try {
+      bru.setEnvVar("productId", productId);
+    } catch (_) {}
+  }
+}
+
+tests {
+  test("get all products returns array", function () {
+    expect(res.getStatus()).to.be.within(200, 299);
+    expect(res.getBody()).to.be.an("array");
+  });
+}

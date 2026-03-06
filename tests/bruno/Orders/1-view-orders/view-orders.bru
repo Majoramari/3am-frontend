@@ -1,0 +1,21 @@
+meta {
+  name: 1. View Orders
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/Order/vieworder
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+tests {
+  test("view orders returns success", function () {
+    expect(res.getStatus()).to.be.within(200, 299);
+  });
+}

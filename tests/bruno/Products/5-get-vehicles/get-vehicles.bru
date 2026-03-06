@@ -1,0 +1,22 @@
+meta {
+  name: 5. Get Vehicles
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/Product/vehicles
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+tests {
+  test("get vehicles returns array", function () {
+    expect(res.getStatus()).to.be.within(200, 299);
+    expect(res.getBody()).to.be.an("array");
+  });
+}

@@ -1,0 +1,24 @@
+meta {
+  name: 4. Get Profile (Authenticated)
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/Account
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+tests {
+  test("get profile returns account payload", function () {
+    expect(res.getStatus()).to.be.within(200, 299);
+    const body = res.getBody();
+    expect(body).to.be.an("object");
+    expect(body).to.have.property("email");
+  });
+}

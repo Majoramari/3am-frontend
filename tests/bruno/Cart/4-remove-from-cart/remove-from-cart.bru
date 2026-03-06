@@ -1,0 +1,21 @@
+meta {
+  name: 4. Remove from Cart
+  type: http
+  seq: 4
+}
+
+delete {
+  url: {{baseUrl}}/Cart/items/{{cartItemId}}
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+tests {
+  test("remove from cart returns success", function () {
+    expect(res.getStatus()).to.be.within(200, 299);
+  });
+}

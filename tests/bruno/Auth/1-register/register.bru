@@ -1,0 +1,38 @@
+meta {
+  name: 1. Register New User
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/Auth/register
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+script:pre-request {
+  const ts = Date.now();
+  const email = `bruno_${ts}@example.com`;
+  bru.setVar("registerEmail", email);
+  try {
+    bru.setEnvVar("registerEmail", email);
+  } catch (_) {}
+}
+
+body:json {
+  {
+    "name": "{{testName}}",
+    "email": "{{registerEmail}}",
+    "phone": "{{testPhone}}"
+  }
+}
+
+tests {
+  test("register returns success", function () {
+    expect(res.getStatus()).to.be.within(200, 299);
+  });
+}

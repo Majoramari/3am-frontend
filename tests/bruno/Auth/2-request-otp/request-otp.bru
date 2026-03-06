@@ -1,0 +1,27 @@
+meta {
+  name: 2. Request OTP (Sign In)
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/Auth/request-otp
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "email": "{{testEmail}}"
+  }
+}
+
+tests {
+  test("request otp returns success", function () {
+    expect(res.getStatus()).to.be.within(200, 299);
+  });
+}

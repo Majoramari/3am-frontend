@@ -1,0 +1,32 @@
+meta {
+  name: 7. Add Product (Admin)
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/Product/add-product
+  body: multipartForm
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+body:multipart-form {
+  Name: Bruno-Test-Product
+  Description: Created by Bruno API test
+  Price: 10
+  Stock_Quantity: 1
+  Brand: Bruno
+  specsJson: {"source":"bruno","type":"test"}
+  Category_Id: {{categoryId}}
+}
+
+tests {
+  test("add product responds without server error", function () {
+    const status = res.getStatus();
+    expect(status).to.be.lessThan(500);
+  });
+}

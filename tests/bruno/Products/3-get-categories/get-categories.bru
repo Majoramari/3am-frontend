@@ -1,0 +1,33 @@
+meta {
+  name: 3. Get Categories
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/Product/categories
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+script:post-response {
+  const body = res.getBody();
+  if (Array.isArray(body) && body.length > 0 && body[0].id) {
+    const categoryId = String(body[0].id);
+    bru.setVar("categoryId", categoryId);
+    try {
+      bru.setEnvVar("categoryId", categoryId);
+    } catch (_) {}
+  }
+}
+
+tests {
+  test("get categories returns array", function () {
+    expect(res.getStatus()).to.be.within(200, 299);
+    expect(res.getBody()).to.be.an("array");
+  });
+}

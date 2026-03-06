@@ -1,0 +1,21 @@
+meta {
+  name: 6. Clear Cart
+  type: http
+  seq: 6
+}
+
+delete {
+  url: {{hostUrl}}/items/clear
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+tests {
+  test("clear cart returns success", function () {
+    expect(res.getStatus()).to.be.within(200, 299);
+  });
+}
