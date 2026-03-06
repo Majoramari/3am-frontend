@@ -33,6 +33,17 @@ const resolveRoute = (path: string, routes: RouteMap): ResolvedRoute | null => {
 	return null;
 };
 
+let globalRouter: Router | null = null;
+
+export const getRouter = (): Router => {
+	if (!globalRouter) {
+		throw new Error(
+			"Router not initialized. Make sure createRouter is called first.",
+		);
+	}
+	return globalRouter;
+};
+
 export const createRouter = (
 	outlet: HTMLElement,
 	routes: RouteMap,
@@ -108,5 +119,7 @@ export const createRouter = (
 		void render();
 	};
 
-	return { start, stop, navigate };
+	const router: Router = { start, stop, navigate };
+	globalRouter = router;
+	return router;
 };

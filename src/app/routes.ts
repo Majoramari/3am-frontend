@@ -29,4 +29,11 @@ export const routes: RouteMap = {
 		return new ProductPage();
 	},
 },
+"/contributors": {
+	title: "Contributors",
+	create: async () => {
+		const { ContributorsPage } = await import("@pages/contributors");
+		return new ContributorsPage();
+	},
+},
 };
