@@ -19,34 +19,33 @@ export const DUSK_BUILD_CONFIG: VehicleBuildConfig = {
 	horsepower: 533,
 	basePrice: 83_240,
 	checkoutDeposit: 500,
-	defaultPaintId: "forest-green",
+	hideInteriorSection: true,
+	hideUpgradeImages: true,
+	defaultPaintId: "gold",
 	defaultWheelId: "sport-bright-22",
 	defaultInteriorId: "adventure-black",
 	defaultSelectedUpgradeIds: ["autonomy-plus"],
 	paints: [
 		{
-			id: "la-silver",
-			label: "LA Silver",
+			id: "gold",
+			label: "Gold",
 			price: 0,
-			swatch:
-				"linear-gradient(150deg, rgb(236 239 244) 0%, rgb(188 195 205) 55%, rgb(130 139 151) 100%)",
-			previewImage: "/assets/dusk/build/paint/la-silver.png",
+			swatch: "#AC9670",
+			previewImage: "/assets/cars/dusk/profile/gold.webp",
 		},
 		{
-			id: "forest-green",
-			label: "Forest Green",
+			id: "cyan",
+			label: "Cyan",
 			price: 2_500,
-			swatch:
-				"linear-gradient(150deg, rgb(131 152 118) 0%, rgb(57 98 54) 52%, rgb(19 45 26) 100%)",
-			previewImage: "/assets/dusk/build/paint/forest-green.png",
+			swatch: "#59E1FF",
+			previewImage: "/assets/cars/dusk/profile/cyan.webp",
 		},
 		{
-			id: "storm-blue",
-			label: "Storm Blue",
+			id: "white",
+			label: "White",
 			price: 2_000,
-			swatch:
-				"linear-gradient(150deg, rgb(147 166 186) 0%, rgb(78 102 129) 55%, rgb(22 43 66) 100%)",
-			previewImage: "/assets/dusk/build/paint/storm-blue.png",
+			swatch: "#FFFFFF",
+			previewImage: "/assets/cars/dusk/profile/white.webp",
 		},
 	],
 	wheels: [
@@ -67,15 +66,6 @@ export const DUSK_BUILD_CONFIG: VehicleBuildConfig = {
 			rangeMiles: 258,
 			zeroToSixtySec: 4.2,
 			image: "/assets/dusk/build/wheels/sport-bright-22.png",
-		},
-		{
-			id: "sport-dark-22",
-			label: '22" Sport Dark',
-			description: "Aggressive profile with darker wheel finish.",
-			price: 3_500,
-			rangeMiles: 252,
-			zeroToSixtySec: 4.0,
-			image: "/assets/dusk/build/wheels/sport-dark-22.png",
 		},
 	],
 	interiors: [
@@ -111,7 +101,6 @@ export const DUSK_BUILD_CONFIG: VehicleBuildConfig = {
 			description: "Advanced driver assistance package for supported highways.",
 			price: 2_500,
 			included: false,
-			image: "/assets/dusk/build/upgrades/autonomy-plus.png",
 		},
 		{
 			id: "premium-audio",
@@ -198,7 +187,7 @@ export const DUSK_BUILD_LINEUP_MODELS: ReadonlyArray<VehicleLineupModel> = [
 		description: "Electric muscle fastback tuned for quick street response.",
 		rangeLabel: "435 km est.",
 		performanceLabel: "Dual-Motor AWD · 4.5 sec 0-100 km/h",
-		image: "/assets/dusk/build/lineup/dual-standard.png",
+		image: "/assets/cars/dusk/profile/white.webp",
 		specs: [
 			{ label: "Range", value: "435 km est." },
 			{ label: "Power", value: "397 kW" },
@@ -215,7 +204,7 @@ export const DUSK_BUILD_LINEUP_MODELS: ReadonlyArray<VehicleLineupModel> = [
 		description: "Track-focused flagship built for grip, launch, and high-speed control.",
 		rangeLabel: "602 km est.",
 		performanceLabel: "Quad-Motor AWD · 2.6 sec 0-100 km/h",
-		image: "/assets/dusk/build/lineup/quad.png",
+		image: "/assets/cars/dusk/profile/cyan.webp",
 		specs: [
 			{ label: "Range", value: "602 km est." },
 			{ label: "Power", value: "615 kW" },

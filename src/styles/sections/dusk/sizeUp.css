@@ -54,58 +54,11 @@
 		block-size: 100%;
 		object-fit: contain;
 		object-position: center;
+		transform: scale(1.14);
+		transform-origin: center;
 		mix-blend-mode: screen;
 		opacity: 0.9;
 		filter: grayscale(1) brightness(1.08) contrast(1.03);
-	}
-
-	.dusk-sizeup__line {
-		position: absolute;
-		display: block;
-		background: rgb(216 216 216 / 0.38);
-	}
-
-	.dusk-sizeup__line--front-width {
-		inset-inline: 4% 4%;
-		block-size: 1px;
-		inset-block-start: 14%;
-	}
-
-	.dusk-sizeup__line--front-height {
-		inline-size: 1px;
-		block-size: 70%;
-		inset-inline-start: 4.5%;
-		inset-block-start: 12%;
-	}
-
-	.dusk-sizeup__line--side-top {
-		inset-inline: 2% 2%;
-		block-size: 1px;
-		inset-block-start: 17%;
-	}
-
-	.dusk-sizeup__line--side-bottom {
-		inset-inline: 2% 2%;
-		block-size: 1px;
-		inset-block-end: 20%;
-	}
-
-	.dusk-sizeup__line--side-left-angle {
-		inline-size: 1px;
-		block-size: 72%;
-		transform: rotate(54deg);
-		transform-origin: top left;
-		inset-inline-start: 11%;
-		inset-block-end: 17%;
-	}
-
-	.dusk-sizeup__line--side-right-angle {
-		inline-size: 1px;
-		block-size: 62%;
-		transform: rotate(54deg);
-		transform-origin: top left;
-		inset-inline-end: 9%;
-		inset-block-end: 21%;
 	}
 
 	.dusk-sizeup__marker {

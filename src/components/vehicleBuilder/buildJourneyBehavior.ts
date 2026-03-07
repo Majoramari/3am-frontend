@@ -121,6 +121,30 @@ const toSwatchPreviewImage = (
 	return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 };
 
+const loadImageAsset = (src: string): Promise<void> =>
+	new Promise((resolve) => {
+		if (typeof Image !== "function") {
+			resolve();
+			return;
+		}
+
+		const preloader = new Image();
+		preloader.decoding = "async";
+		preloader.src = src;
+
+		if (preloader.complete) {
+			resolve();
+			return;
+		}
+
+		const handleDone = (): void => {
+			resolve();
+		};
+
+		preloader.addEventListener("load", handleDone, { once: true });
+		preloader.addEventListener("error", handleDone, { once: true });
+	});
+
 const toStepFallbackFocusArea = (
 	stepId: VehicleBuildStepId,
 ): VehicleBuildFocusArea => {
@@ -230,13 +254,16 @@ const describeShowcase = (
 		];
 		const primaryUpgrade = orderedUpgrades[0];
 		return {
-			main: primaryUpgrade
+			main: primaryUpgrade?.image
 				? { image: primaryUpgrade.image, caption: primaryUpgrade.label }
 				: defaultMain,
-			details: orderedUpgrades.slice(1).map((upgrade) => ({
-				image: upgrade.image,
-				caption: upgrade.label,
-			})),
+			details: orderedUpgrades
+				.slice(1)
+				.filter((upgrade) => upgrade.image)
+				.map((upgrade) => ({
+					image: upgrade.image!,
+					caption: upgrade.label,
+				})),
 		};
 	}
 
@@ -256,7 +283,7 @@ const describeShowcase = (
 		main: defaultMain,
 		details: [
 			{ image: wheel.image, caption: wheel.label },
-			highlightedUpgrade
+			highlightedUpgrade?.image
 				? {
 						image: highlightedUpgrade.image,
 						caption: highlightedUpgrade.label,
@@ -274,9 +301,21 @@ export const setupVehicleBuildJourney = (
 	cleanup: CleanupBag,
 	config: VehicleBuildConfig,
 ): void => {
-	const mainImage = root.querySelector<HTMLImageElement>(
+	const mainImageLayerNodes = Array.from(
+		root.querySelectorAll<HTMLImageElement>(
+			"[data-vehicle-build-main-image-layer]",
+		),
+	);
+	const legacyMainImage = root.querySelector<HTMLImageElement>(
 		"[data-vehicle-build-main-image]",
 	);
+	const mainImages =
+		mainImageLayerNodes.length >= 2
+			? mainImageLayerNodes.slice(0, 2)
+			: legacyMainImage
+				? [legacyMainImage]
+				: [];
+	const hasLayeredMainImages = mainImages.length > 1;
 	const galleryControls = root.querySelector<HTMLElement>(
 		"[data-vehicle-build-gallery-controls]",
 	);
@@ -331,11 +370,10 @@ export const setupVehicleBuildJourney = (
 	);
 
 	if (
-		!mainImage ||
+		mainImages.length === 0 ||
 		stepPanels.length === 0 ||
 		paintButtons.length === 0 ||
 		wheelButtons.length === 0 ||
-		interiorButtons.length === 0 ||
 		upgradeButtons.length === 0 ||
 		accessoryButtons.length === 0
 	) {
@@ -442,6 +480,30 @@ export const setupVehicleBuildJourney = (
 	let galleryItems: ShowcaseItem[] = [];
 	let gallerySignature = "";
 	let galleryIndex = 0;
+	let activeMainImageLayerIndex = 0;
+	let mainImageSwapToken = 0;
+	const prefersReducedMotion =
+		typeof window.matchMedia === "function" &&
+		window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+	if (hasLayeredMainImages) {
+		const activeLayerIndex = mainImages.findIndex((image) =>
+			image.classList.contains("is-active"),
+		);
+		activeMainImageLayerIndex = activeLayerIndex >= 0 ? activeLayerIndex : 0;
+		mainImages.forEach((image, index) => {
+			image.classList.toggle("is-active", index === activeMainImageLayerIndex);
+			if (index === activeMainImageLayerIndex) {
+				image.removeAttribute("aria-hidden");
+				return;
+			}
+			image.setAttribute("aria-hidden", "true");
+		});
+	}
+
+	for (const image of mainImages) {
+		image.dataset.vehicleBuildImageSrc = image.getAttribute("src") ?? "";
+	}
 
 	const revealBuildFocusThrough = (focusArea: VehicleBuildFocusArea): void => {
 		const index = buildFocusAreaIndexes.get(focusArea);
@@ -594,8 +656,54 @@ export const setupVehicleBuildJourney = (
 		if (!activeItem) {
 			return;
 		}
-		mainImage.src = activeItem.image;
-		mainImage.alt = `${activeItem.caption} preview`;
+		const nextAlt = `${activeItem.caption} preview`;
+
+		if (!hasLayeredMainImages || prefersReducedMotion) {
+			const primaryImage = mainImages[0];
+			if (!primaryImage) {
+				return;
+			}
+			if (primaryImage.dataset.vehicleBuildImageSrc !== activeItem.image) {
+				primaryImage.src = activeItem.image;
+				primaryImage.dataset.vehicleBuildImageSrc = activeItem.image;
+			}
+			primaryImage.alt = nextAlt;
+			primaryImage.removeAttribute("aria-hidden");
+			renderGalleryControls();
+			return;
+		}
+
+		const currentImage = mainImages[activeMainImageLayerIndex];
+		if (!currentImage) {
+			return;
+		}
+		if (currentImage.dataset.vehicleBuildImageSrc === activeItem.image) {
+			currentImage.alt = nextAlt;
+			renderGalleryControls();
+			return;
+		}
+
+		const nextImageLayerIndex = (activeMainImageLayerIndex + 1) % mainImages.length;
+		const nextImage = mainImages[nextImageLayerIndex];
+		if (!nextImage) {
+			return;
+		}
+
+		const swapToken = ++mainImageSwapToken;
+		void loadImageAsset(activeItem.image).then(() => {
+			if (swapToken !== mainImageSwapToken) {
+				return;
+			}
+
+			nextImage.src = activeItem.image;
+			nextImage.dataset.vehicleBuildImageSrc = activeItem.image;
+			nextImage.alt = nextAlt;
+			nextImage.classList.add("is-active");
+			nextImage.removeAttribute("aria-hidden");
+			currentImage.classList.remove("is-active");
+			currentImage.setAttribute("aria-hidden", "true");
+			activeMainImageLayerIndex = nextImageLayerIndex;
+		});
 		renderGalleryControls();
 	};
 
@@ -1018,6 +1126,10 @@ export const setupVehicleBuildJourney = (
 			render();
 		});
 	}
+
+	cleanup.add(() => {
+		mainImageSwapToken += 1;
+	});
 
 	render();
 };

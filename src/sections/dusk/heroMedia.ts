@@ -8,30 +8,17 @@ type DuskHeroShowcaseItem = {
 	label: string;
 };
 
+type DuskHeroMediaOptions = {
+	showcaseItems?: ReadonlyArray<DuskHeroShowcaseItem>;
+	showHeroMedia?: boolean;
+};
+
 const DUSK_HERO_SHOWCASE_ITEMS: ReadonlyArray<DuskHeroShowcaseItem> = [
 	{
 		kind: "image",
 		src: "/assets/cars/dusk/showcase/0001.webp",
 		alt: "Dusk front three-quarter view",
 		label: "Front Profile",
-	},
-	{
-		kind: "video",
-		src: "/assets/dusk/hero_video.webm",
-		poster: "/assets/dusk/hero_endframe.webp",
-		label: "Motion Reel",
-	},
-	{
-		kind: "image",
-		src: "/assets/cars/dusk/showcase/0017.webp",
-		alt: "Dusk side profile view",
-		label: "Side Profile",
-	},
-	{
-		kind: "image",
-		src: "/assets/cars/dusk/showcase/0033.webp",
-		alt: "Dusk rear three-quarter view",
-		label: "Rear Profile",
 	},
 ];
 
@@ -44,11 +31,20 @@ const INTERACTIVE_TARGET_SELECTOR =
 	"a, button, input, select, textarea, [role='button']";
 
 export class DuskHeroMediaSection extends View<"section"> {
-	constructor() {
+	private readonly showcaseItems: ReadonlyArray<DuskHeroShowcaseItem>;
+	private readonly showHeroMedia: boolean;
+
+	constructor(options: DuskHeroMediaOptions = {}) {
+		const className = ["page-section", "dusk-hero"];
+		if (options.showHeroMedia === false) {
+			className.push("dusk-hero--showcase-only");
+		}
 		super("section", {
-			className: ["page-section", "dusk-hero"],
+			className,
 			dataset: { gaSection: "dusk-hero-media" },
 		});
+		this.showcaseItems = options.showcaseItems ?? DUSK_HERO_SHOWCASE_ITEMS;
+		this.showHeroMedia = options.showHeroMedia ?? true;
 	}
 
 	protected override onMount(): void {
@@ -163,6 +159,7 @@ export class DuskHeroMediaSection extends View<"section"> {
 			"[data-dusk-showcase-viewport]",
 		);
 		const track = slider.querySelector<HTMLElement>("[data-dusk-showcase-track]");
+		const controls = slider.querySelector<HTMLElement>(".dusk-hero-slider__controls");
 		const toggleButton = slider.querySelector<HTMLButtonElement>(
 			"[data-dusk-showcase-toggle]",
 		);
@@ -176,9 +173,45 @@ export class DuskHeroMediaSection extends View<"section"> {
 		const dots = Array.from(
 			slider.querySelectorAll<HTMLButtonElement>("[data-dusk-showcase-dot]"),
 		);
-		if (slides.length <= 1 || dots.length !== slides.length) {
+		const slideCount = slides.length;
+		if (slideCount === 0 || dots.length !== slideCount) {
 			return;
 		}
+		if (slideCount === 1) {
+			controls?.setAttribute("hidden", "true");
+			const singleVideo = slides[0]?.querySelector<HTMLVideoElement>("video");
+			if (!singleVideo) {
+				return;
+			}
+			singleVideo.loop = true;
+
+			const syncSingleVideoPlayback = (): void => {
+				if (document.hidden) {
+					singleVideo.pause();
+					return;
+				}
+				const playPromise = singleVideo.play();
+				if (playPromise instanceof Promise) {
+					void playPromise.catch(() => {
+						// Keep poster visible when autoplay is blocked by the browser.
+					});
+				}
+			};
+
+			syncSingleVideoPlayback();
+			document.addEventListener("visibilitychange", syncSingleVideoPlayback);
+			this.cleanup.add(() => {
+				document.removeEventListener(
+					"visibilitychange",
+					syncSingleVideoPlayback,
+				);
+				singleVideo.pause();
+			});
+			return;
+		}
+		controls?.removeAttribute("hidden");
+
+		const displaySlides = slides;
 
 		const slideVideos = slides.map((slide) =>
 			slide.querySelector<HTMLVideoElement>("video"),
@@ -196,14 +229,10 @@ export class DuskHeroMediaSection extends View<"section"> {
 		let isDragging = false;
 		let slideWidth = 0;
 		let slideStride = 0;
+		let visualIndex = activeIndex;
 		let dragPointerId: number | null = null;
 		let dragStartX = 0;
 		let dragStartTranslateX = 0;
-
-		const normalizeIndex = (value: number): number => {
-			const count = slides.length;
-			return ((value % count) + count) % count;
-		};
 
 		const stopProgressAnimation = (): void => {
 			if (progressRafId === 0) {
@@ -228,15 +257,17 @@ export class DuskHeroMediaSection extends View<"section"> {
 		const setTrackPosition = (
 			animate: boolean,
 			durationMs: number = SHOWCASE_MANUAL_DURATION_MS,
+			targetVisualIndex: number = visualIndex,
 		): void => {
 			if (slideStride <= 0 || slideWidth <= 0) {
 				return;
 			}
 
-			const activeSlide = slides[activeIndex];
+			const activeSlide = displaySlides[targetVisualIndex];
 			if (!activeSlide) {
 				return;
 			}
+
 			const slideCenterX = activeSlide.offsetLeft + activeSlide.offsetWidth / 2;
 			const viewportCenterX = viewport.clientWidth / 2;
 			const translateX = viewportCenterX - slideCenterX;
@@ -248,12 +279,12 @@ export class DuskHeroMediaSection extends View<"section"> {
 		};
 
 		const syncLayout = (): void => {
-			const firstSlide = slides[0];
-			if (!firstSlide) {
+			const firstRealSlide = slides[0];
+			if (!firstRealSlide) {
 				return;
 			}
 
-			const firstSlideWidth = firstSlide.offsetWidth;
+			const firstSlideWidth = firstRealSlide.offsetWidth;
 			if (firstSlideWidth <= 0) {
 				return;
 			}
@@ -261,7 +292,8 @@ export class DuskHeroMediaSection extends View<"section"> {
 
 			const secondSlide = slides[1];
 			if (secondSlide) {
-				const firstCenterX = firstSlide.offsetLeft + firstSlide.offsetWidth / 2;
+				const firstCenterX =
+					firstRealSlide.offsetLeft + firstRealSlide.offsetWidth / 2;
 				const secondCenterX = secondSlide.offsetLeft + secondSlide.offsetWidth / 2;
 				const offsetStride = secondCenterX - firstCenterX;
 				slideStride = offsetStride > 0 ? offsetStride : slideWidth;
@@ -372,11 +404,28 @@ export class DuskHeroMediaSection extends View<"section"> {
 
 		const setActiveSlide = (
 			nextIndex: number,
-			options: { resetProgress?: boolean; durationMs?: number } = {},
+			options: {
+				resetProgress?: boolean;
+				durationMs?: number;
+				animate?: boolean;
+			} = {},
 		): void => {
-			const { resetProgress = true, durationMs = SHOWCASE_MANUAL_DURATION_MS } =
-				options;
-			activeIndex = normalizeIndex(nextIndex);
+			const {
+				resetProgress = true,
+				durationMs = SHOWCASE_MANUAL_DURATION_MS,
+				animate = true,
+			} = options;
+
+			// Clamp index to valid range (no wrapping)
+			const clampedIndex = Math.max(0, Math.min(slideCount - 1, nextIndex));
+			
+			if (clampedIndex === activeIndex) {
+				return;
+			}
+
+			activeIndex = clampedIndex;
+			visualIndex = clampedIndex;
+			const shouldAnimate = animate;
 
 			slides.forEach((slide, index) => {
 				const isActive = index === activeIndex;
@@ -390,7 +439,7 @@ export class DuskHeroMediaSection extends View<"section"> {
 				dot.setAttribute("aria-pressed", isActive ? "true" : "false");
 			});
 
-			setTrackPosition(true, durationMs);
+			setTrackPosition(shouldAnimate, durationMs);
 			syncActiveVideoPlayback();
 			if (resetProgress) {
 				progressElapsedMs = 0;
@@ -426,7 +475,7 @@ export class DuskHeroMediaSection extends View<"section"> {
 				return;
 			}
 
-			const activeSlide = slides[activeIndex];
+			const activeSlide = displaySlides[visualIndex];
 			if (!activeSlide) {
 				return;
 			}
@@ -447,13 +496,14 @@ export class DuskHeroMediaSection extends View<"section"> {
 			if (dragPointerId !== event.pointerId) {
 				return;
 			}
-			const firstSlide = slides[0];
-			const lastSlide = slides[slides.length - 1];
-			if (!firstSlide || !lastSlide) {
+			const firstTrackSlide = displaySlides[0];
+			const lastTrackSlide = displaySlides[displaySlides.length - 1];
+			if (!firstTrackSlide || !lastTrackSlide) {
 				return;
 			}
-			const firstCenterX = firstSlide.offsetLeft + firstSlide.offsetWidth / 2;
-			const lastCenterX = lastSlide.offsetLeft + lastSlide.offsetWidth / 2;
+			const firstCenterX =
+				firstTrackSlide.offsetLeft + firstTrackSlide.offsetWidth / 2;
+			const lastCenterX = lastTrackSlide.offsetLeft + lastTrackSlide.offsetWidth / 2;
 			const firstTranslate = viewport.clientWidth / 2 - firstCenterX;
 			const lastTranslate = viewport.clientWidth / 2 - lastCenterX;
 			const minTranslate = Math.min(firstTranslate, lastTranslate);
@@ -532,7 +582,7 @@ export class DuskHeroMediaSection extends View<"section"> {
 
 		syncLayout();
 		syncToggleButton();
-		setActiveSlide(activeIndex);
+		setActiveSlide(activeIndex, { animate: false });
 		this.cleanup.add(() => {
 			stopProgressAnimation();
 			viewport.classList.remove("is-dragging");
@@ -545,24 +595,30 @@ export class DuskHeroMediaSection extends View<"section"> {
 	render(): DocumentFragment {
 		return this.tpl`
 			<div class="dusk-hero__shell">
-				<div class="dusk-hero__media" data-dusk-hero-media>
-					<video
-						class="dusk-hero__video"
-						data-dusk-hero-video
-						muted
-						playsinline
-						preload="auto"
-						poster="/assets/dusk/hero_endframe.webp"
-						aria-label="Dusk hero video"
-					>
-						<source src="/assets/dusk/hero_video.webm" type="video/webm" />
-					</video>
-					<img
-						class="dusk-hero__image"
-						src="/assets/dusk/hero_endframe.webp"
-						alt="Dusk exterior still frame"
-					/>
-				</div>
+				${
+					this.showHeroMedia
+						? this.tpl`
+							<div class="dusk-hero__media" data-dusk-hero-media>
+								<video
+									class="dusk-hero__video"
+									data-dusk-hero-video
+									muted
+									playsinline
+									preload="auto"
+									poster="/assets/dusk/hero_endframe.webp"
+									aria-label="Dusk hero video"
+								>
+									<source src="/assets/dusk/hero_video.webm" type="video/webm" />
+								</video>
+								<img
+									class="dusk-hero__image"
+									src="/assets/dusk/hero_endframe.webp"
+									alt="Dusk exterior still frame"
+								/>
+							</div>
+						`
+						: ""
+				}
 				<section class="dusk-hero__showcase" aria-label="Dusk showcase">
 					<header class="dusk-hero__showcase-head">
 						<h2 class="dusk-hero__showcase-title">Get the highlights.</h2>
@@ -570,10 +626,10 @@ export class DuskHeroMediaSection extends View<"section"> {
 					<div class="dusk-hero-slider" data-dusk-showcase-slider>
 						<div class="dusk-hero-slider__viewport" data-dusk-showcase-viewport>
 							<div class="dusk-hero-slider__track" data-dusk-showcase-track>
-							${DUSK_HERO_SHOWCASE_ITEMS.map(
-								(item, index) => this.tpl`
-									<figure
-										class="dusk-hero-slider__item ${index === 0 ? "is-active" : ""}"
+								${this.showcaseItems.map(
+									(item, index) => this.tpl`
+										<figure
+											class="dusk-hero-slider__item ${index === 0 ? "is-active" : ""}"
 										data-dusk-showcase-slide
 										aria-hidden="${index === 0 ? "false" : "true"}"
 									>
@@ -583,8 +639,8 @@ export class DuskHeroMediaSection extends View<"section"> {
 										<video
 											muted
 											playsinline
-											preload="metadata"
-											poster="${item.poster ?? "/assets/dusk/hero_endframe.webp"}"
+											preload="auto"
+											${item.poster ? `poster="${item.poster}"` : ""}
 											aria-label="Dusk moving showcase"
 										>
 											<source src="${item.src}" type="video/webm" />
@@ -600,12 +656,12 @@ export class DuskHeroMediaSection extends View<"section"> {
 							</div>
 						</div>
 						<div class="dusk-hero-slider__controls">
-							<div class="dusk-hero-slider__control-row">
-								<div class="dusk-hero-slider__dots" role="group" aria-label="Dusk showcase slides">
-									${DUSK_HERO_SHOWCASE_ITEMS.map(
-										(item, index) => this.tpl`
-											<button
-												type="button"
+								<div class="dusk-hero-slider__control-row">
+									<div class="dusk-hero-slider__dots" role="group" aria-label="Dusk showcase slides">
+										${this.showcaseItems.map(
+											(item, index) => this.tpl`
+												<button
+													type="button"
 												class="dusk-hero-slider__dot ${index === 0 ? "is-active" : ""}"
 												data-dusk-showcase-dot
 												aria-pressed="${index === 0 ? "true" : "false"}"

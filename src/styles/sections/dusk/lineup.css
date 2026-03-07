@@ -111,11 +111,12 @@
 
 	.dusk-lineup__card img {
 		inline-size: 100%;
-		aspect-ratio: 16 / 10;
+		block-size: auto;
 		display: block;
-		object-fit: contain;
-		border-radius: 1rem;
-		background: rgb(20 20 20 / 0.88);
+		object-fit: cover;
+		border-radius: 1.5rem;
+		border: 0;
+		background: transparent;
 	}
 
 	.dusk-lineup__description {

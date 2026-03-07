@@ -1,7 +1,8 @@
 import type { CleanupBag } from "@lib/cleanup";
 import { clamp } from "@lib/math";
 
-const DUSK_FRAME_COUNT = 120;
+const DEFAULT_FRAME_COUNT = 120;
+const DEFAULT_FRAME_PATH = "/assets/cars/dusk/360";
 const DRAG_PIXELS_PER_FRAME = 6;
 const BASE_PREFETCH_RADIUS = 2;
 const DRAG_PREFETCH_RADIUS = 8;
@@ -18,8 +19,7 @@ const normalizeFrameIndex = (value: number, frameCount: number): number => {
 	return wrapped >= 0 ? wrapped : wrapped + frameCount;
 };
 
-const frameUrlAt = (frameIndex: number): string =>
-	`/assets/dusk/frames/${String(frameIndex + 1).padStart(4, "0")}.webp`;
+const normalizeFramePath = (value: string): string => value.replace(/\/+$/, "");
 
 const findNearestLoadedFrame = (
 	frames: Array<HTMLImageElement | null>,
@@ -94,6 +94,20 @@ export const setupDuskSpinCanvas = (
 		return;
 	}
 
+	const parsedFrameCount = Number.parseInt(
+		canvas.dataset.duskSpinFrameCount ?? "",
+		10,
+	);
+	const frameCount =
+		Number.isInteger(parsedFrameCount) && parsedFrameCount > 0
+			? parsedFrameCount
+			: DEFAULT_FRAME_COUNT;
+	const framePath = normalizeFramePath(
+		canvas.dataset.duskSpinFramePath?.trim() || DEFAULT_FRAME_PATH,
+	);
+	const frameUrlAt = (frameIndex: number): string =>
+		`${framePath}/${String(frameIndex + 1).padStart(4, "0")}.webp`;
+
 	const ctx = canvas.getContext("2d");
 	if (!ctx) {
 		return;
@@ -101,11 +115,11 @@ export const setupDuskSpinCanvas = (
 	ctx.imageSmoothingEnabled = true;
 
 	const frames: Array<HTMLImageElement | null> = Array.from(
-		{ length: DUSK_FRAME_COUNT },
+		{ length: frameCount },
 		() => null,
 	);
 	const frameRequested: boolean[] = Array.from(
-		{ length: DUSK_FRAME_COUNT },
+		{ length: frameCount },
 		() => false,
 	);
 
@@ -126,11 +140,11 @@ export const setupDuskSpinCanvas = (
 	const introStartFrameIndex = clamp(
 		INTRO_START_FRAME_NUMBER - 1,
 		0,
-		DUSK_FRAME_COUNT - 1,
+		frameCount - 1,
 	);
 	const introForwardDistance = normalizeFrameIndex(
 		INTRO_END_FRAME_INDEX - introStartFrameIndex,
-		DUSK_FRAME_COUNT,
+		frameCount,
 	);
 
 	const updateStatus = (): void => {
@@ -138,12 +152,12 @@ export const setupDuskSpinCanvas = (
 			return;
 		}
 
-		if (loadedCount >= DUSK_FRAME_COUNT) {
-			statusNode.textContent = `Frame ${String(activeFrame + 1).padStart(3, "0")} / ${DUSK_FRAME_COUNT}`;
+		if (loadedCount >= frameCount) {
+			statusNode.textContent = `Frame ${String(activeFrame + 1).padStart(3, "0")} / ${frameCount}`;
 			return;
 		}
 
-		statusNode.textContent = `Loading ${loadedCount} / ${DUSK_FRAME_COUNT} frames`;
+		statusNode.textContent = `Loading ${loadedCount} / ${frameCount} frames`;
 	};
 
 	const drawCurrentFrame = (): void => {
@@ -167,17 +181,17 @@ export const setupDuskSpinCanvas = (
 	};
 
 	const setFrame = (nextFrame: number): void => {
-		const normalized = normalizeFrameIndex(nextFrame, DUSK_FRAME_COUNT);
+		const normalized = normalizeFrameIndex(nextFrame, frameCount);
 		const prefetchRadius = isDragging
 			? DRAG_PREFETCH_RADIUS
 			: BASE_PREFETCH_RADIUS;
 		requestFrame(normalized);
 		for (let distance = 1; distance <= prefetchRadius; distance += 1) {
 			requestFrame(
-				normalizeFrameIndex(normalized - distance, DUSK_FRAME_COUNT),
+				normalizeFrameIndex(normalized - distance, frameCount),
 			);
 			requestFrame(
-				normalizeFrameIndex(normalized + distance, DUSK_FRAME_COUNT),
+				normalizeFrameIndex(normalized + distance, frameCount),
 			);
 		}
 		if (normalized === activeFrame) {
@@ -206,7 +220,7 @@ export const setupDuskSpinCanvas = (
 		);
 		const nextIntroFrame = normalizeFrameIndex(
 			introStartFrameIndex + Math.round(introForwardDistance * introProgress),
-			DUSK_FRAME_COUNT,
+			frameCount,
 		);
 		setFrame(nextIntroFrame);
 	};
@@ -273,7 +287,7 @@ export const setupDuskSpinCanvas = (
 	};
 
 	const requestFrame = (frameIndex: number): void => {
-		if (frameIndex < 0 || frameIndex >= DUSK_FRAME_COUNT) {
+		if (frameIndex < 0 || frameIndex >= frameCount) {
 			return;
 		}
 		if (frameRequested[frameIndex]) {
@@ -336,11 +350,11 @@ export const setupDuskSpinCanvas = (
 			return;
 		}
 
-		while (preloadCursor < DUSK_FRAME_COUNT && frameRequested[preloadCursor]) {
+		while (preloadCursor < frameCount && frameRequested[preloadCursor]) {
 			preloadCursor += 1;
 		}
 
-		if (preloadCursor >= DUSK_FRAME_COUNT) {
+		if (preloadCursor >= frameCount) {
 			return;
 		}
 
@@ -416,7 +430,7 @@ export const setupDuskSpinCanvas = (
 
 	const firstFrame = new Image();
 	firstFrame.decoding = "async";
-	firstFrame.src = "/assets/dusk/dusk_transparent.webp";
+	firstFrame.src = frameUrlAt(0);
 	firstFrame.addEventListener(
 		"load",
 		() => {

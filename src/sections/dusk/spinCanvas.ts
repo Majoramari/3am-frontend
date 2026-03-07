@@ -1,12 +1,25 @@
 import { View } from "@lib/view";
 import { setupDuskSpinCanvas } from "./spinCanvasBehavior";
 
+type DuskSpinCanvasSectionOptions = {
+	modelName?: string;
+	framePath?: string;
+	frameCount?: number;
+};
+
 export class DuskSpinCanvasSection extends View<"section"> {
-	constructor() {
+	private readonly modelName: string;
+	private readonly framePath: string;
+	private readonly frameCount: number;
+
+	constructor(options: DuskSpinCanvasSectionOptions = {}) {
 		super("section", {
 			className: ["page-section", "dusk-spin"],
 			dataset: { gaSection: "dusk-spin-canvas" },
 		});
+		this.modelName = options.modelName ?? "Dusk";
+		this.framePath = options.framePath ?? "/assets/cars/dusk/360";
+		this.frameCount = options.frameCount ?? 120;
 	}
 
 	protected override onMount(): void {
@@ -40,9 +53,11 @@ export class DuskSpinCanvasSection extends View<"section"> {
 					<canvas
 						class="dusk-spin-canvas"
 						data-dusk-spin-canvas
+						data-dusk-spin-frame-path="${this.framePath}"
+						data-dusk-spin-frame-count="${this.frameCount}"
 						tabindex="0"
 						role="img"
-						aria-label="Interactive Dusk spin preview"
+						aria-label="Interactive ${this.modelName} spin preview"
 					></canvas>
 				</div>
 			</div>

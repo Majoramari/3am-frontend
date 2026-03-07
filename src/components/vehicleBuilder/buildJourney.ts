@@ -137,13 +137,21 @@ export class VehicleBuildJourneySection extends View<"section"> {
 
 				<div class="dusk-build__layout">
 					<div class="dusk-build__stage">
-						<div class="dusk-build__viewer">
-							<img
-								class="dusk-build__main-image"
-								data-vehicle-build-main-image
-								src="${defaultPaint.previewImage}"
-								alt="${defaultPaint.label} ${this.config.model} preview"
-							/>
+							<div class="dusk-build__viewer">
+								<img
+									class="dusk-build__main-image is-active"
+									data-vehicle-build-main-image
+									data-vehicle-build-main-image-layer="0"
+									src="${defaultPaint.previewImage}"
+									alt="${defaultPaint.label} ${this.config.model} preview"
+								/>
+								<img
+									class="dusk-build__main-image"
+									data-vehicle-build-main-image-layer="1"
+									src="${defaultPaint.previewImage}"
+									alt="${defaultPaint.label} ${this.config.model} preview"
+									aria-hidden="true"
+								/>
 							<div
 								class="dusk-build__gallery-controls"
 								data-vehicle-build-gallery-controls
@@ -269,41 +277,47 @@ export class VehicleBuildJourneySection extends View<"section"> {
 								</p>
 							</section>
 
-							<section class="dusk-build__group" data-vehicle-build-focus-area="interior">
-								<div class="dusk-build__group-head">
-									<h3>Interior</h3>
-									<span data-vehicle-build-interior-price>
-										${defaultInterior.price > 0 ? toUsdWhole(defaultInterior.price) : "Included"}
-									</span>
-								</div>
-								<p class="dusk-build__group-selected" data-vehicle-build-interior-name>
-									${defaultInterior.label}
-								</p>
-								<p
-									class="dusk-build__interior-description"
-									data-vehicle-build-interior-description
-								>
-									${defaultInterior.description}
-								</p>
-								<div class="dusk-build__interior-list" role="listbox" aria-label="Interior options">
-									${this.config.interiors.map(
-										(option) => this.tpl`
-											<button
-												type="button"
-												class="dusk-build__interior-swatch ${
-													option.id === defaultInterior.id ? "is-active" : ""
-												}"
-												data-vehicle-build-interior="${option.id}"
-												aria-label="${option.label}"
-												aria-pressed="${option.id === defaultInterior.id ? "true" : "false"}"
-												style="--dusk-interior-swatch-fill: ${option.swatch};"
+							${
+								this.config.hideInteriorSection
+									? ""
+									: this.tpl`
+										<section class="dusk-build__group" data-vehicle-build-focus-area="interior">
+											<div class="dusk-build__group-head">
+												<h3>Interior</h3>
+												<span data-vehicle-build-interior-price>
+													${defaultInterior.price > 0 ? toUsdWhole(defaultInterior.price) : "Included"}
+												</span>
+											</div>
+											<p class="dusk-build__group-selected" data-vehicle-build-interior-name>
+												${defaultInterior.label}
+											</p>
+											<p
+												class="dusk-build__interior-description"
+												data-vehicle-build-interior-description
 											>
-												<span class="dusk-build__interior-swatch-core" aria-hidden="true"></span>
-											</button>
-										`,
-									)}
-								</div>
-							</section>
+												${defaultInterior.description}
+											</p>
+											<div class="dusk-build__interior-list" role="listbox" aria-label="Interior options">
+												${this.config.interiors.map(
+													(option) => this.tpl`
+														<button
+															type="button"
+															class="dusk-build__interior-swatch ${
+																option.id === defaultInterior.id ? "is-active" : ""
+															}"
+															data-vehicle-build-interior="${option.id}"
+															aria-label="${option.label}"
+															aria-pressed="${option.id === defaultInterior.id ? "true" : "false"}"
+															style="--dusk-interior-swatch-fill: ${option.swatch};"
+														>
+															<span class="dusk-build__interior-swatch-core" aria-hidden="true"></span>
+														</button>
+													`,
+												)}
+											</div>
+										</section>
+									`
+							}
 
 							<section class="dusk-build__group" data-vehicle-build-focus-area="upgrades">
 								<div class="dusk-build__group-head">
@@ -315,6 +329,7 @@ export class VehicleBuildJourneySection extends View<"section"> {
 								${new VehicleUpgradeCards({
 									upgrades: this.config.upgrades,
 									defaultSelectedIds: defaultSelectedUpgradeIds,
+									hideImages: this.config.hideUpgradeImages,
 								})}
 							</section>
 

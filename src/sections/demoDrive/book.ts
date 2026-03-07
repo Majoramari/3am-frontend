@@ -27,14 +27,14 @@ const demoDriveVehicles: ReadonlyArray<DemoDriveVehicle> = [
 		id: "dusk",
 		name: "DUSK",
 		description: "All-electric coupe with bold performance and daily comfort.",
-		imageSrc: "/assets/dusk/dusk_transparent.webp",
+		imageSrc: "/assets/cars/dusk/profile/white.webp",
 		imageAlt: "Dusk in profile",
 	},
 	{
 		id: "dawn",
 		name: "DAWN",
 		description: "All-electric coupe crafted for smooth and confident drives.",
-		imageSrc: "/assets/cars/0001.webp",
+		imageSrc: "/assets/cars/dawn/profile/white.webp",
 		imageAlt: "Dawn in profile",
 	},
 ];

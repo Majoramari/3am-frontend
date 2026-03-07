@@ -13,6 +13,32 @@ export const DAWN_BUILD_CONFIG: VehicleBuildConfig = {
 	progressRootSegment: "dawn",
 	progressModelSegment: "dual-standard",
 	model: "Dual Standard",
+	hideInteriorSection: true,
+	hideUpgradeImages: true,
+	defaultPaintId: "white",
+	paints: [
+		{
+			id: "white",
+			label: "White",
+			price: 0,
+			swatch: "#FFFFFFFF",
+			previewImage: "/assets/cars/dawn/profile/white.webp",
+		},
+		{
+			id: "yellow",
+			label: "Yellow",
+			price: 2_500,
+			swatch: "#FFC200FF",
+			previewImage: "/assets/cars/dawn/profile/yellow.webp",
+		},
+		{
+			id: "blue",
+			label: "Blue",
+			price: 2_000,
+			swatch: "#005396FF",
+			previewImage: "/assets/cars/dawn/profile/blue.webp",
+		},
+	],
 	steps: [
 		{ id: "build", label: "Build", title: "Build your DAWN" },
 		{ id: "accessories", label: "Accessories", title: "Add accessories" },
@@ -28,7 +54,7 @@ export const DAWN_BUILD_LINEUP_MODELS: ReadonlyArray<VehicleLineupModel> = [
 		description: "Rugged electric SUV for trails, towing, and daily comfort.",
 		rangeLabel: "510 km est.",
 		performanceLabel: "Dual-Motor AWD · 4.9 sec 0-100 km/h",
-		image: "/assets/dusk/build/lineup/dual-standard.png",
+		image: "/assets/cars/dawn/profile/white.webp",
 		specs: [
 			{ label: "Range", value: "510 km est." },
 			{ label: "Ground clearance", value: "268 mm" },
@@ -46,7 +72,7 @@ export const DAWN_BUILD_LINEUP_MODELS: ReadonlyArray<VehicleLineupModel> = [
 			"Off-road flagship with torque-vectoring for technical terrain.",
 		rangeLabel: "560 km est.",
 		performanceLabel: "Quad-Motor AWD · 3.8 sec 0-100 km/h",
-		image: "/assets/dusk/build/lineup/quad.png",
+		image: "/assets/cars/dawn/profile/yellow.webp",
 		specs: [
 			{ label: "Range", value: "560 km est." },
 			{ label: "Ground clearance", value: "295 mm" },

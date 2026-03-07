@@ -114,11 +114,27 @@
 	}
 
 	.dusk-build__main-image {
+		position: absolute;
+		inset: 0;
 		inline-size: 100%;
 		block-size: 100%;
 		display: block;
 		object-fit: cover;
 		object-position: center;
+		pointer-events: none;
+		opacity: 1;
+		z-index: 1;
+		will-change: opacity;
+		transition: opacity 360ms linear;
+	}
+
+	.dusk-build__main-image[data-vehicle-build-main-image-layer] {
+		opacity: 0;
+	}
+
+	.dusk-build__main-image[data-vehicle-build-main-image-layer].is-active {
+		opacity: 1;
+		z-index: 2;
 	}
 
 	.dusk-build__gallery-controls {
@@ -599,6 +615,11 @@
 		background: #e8ebf0;
 	}
 
+	.dusk-build__option-card.is-no-media {
+		grid-template-columns: minmax(0, 1fr) auto;
+		padding-inline: 1.2rem;
+	}
+
 	.dusk-build__option-copy {
 		display: grid;
 		gap: 0.18rem;
@@ -890,6 +911,10 @@
 
 		.dusk-build__option-card {
 			grid-template-columns: 8.2rem minmax(0, 1fr);
+		}
+
+		.dusk-build__option-card.is-no-media {
+			grid-template-columns: minmax(0, 1fr) auto;
 		}
 
 		.dusk-build__option-price {

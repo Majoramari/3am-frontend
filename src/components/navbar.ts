@@ -128,9 +128,9 @@ const hasAdminRole = (token: string | null): boolean => {
 const GEARS_CARDS: ReadonlyArray<MediaCardConfig> = [
 	{
 		label: "Autonomous",
-		href: "/gears/autonomous",
+		href: "/gears",
 		className: "nav-gears-card-autonomous",
-		backgroundImage: "/assets/shared/placeholder.png",
+		backgroundImage: "/assets/shared/item.webp",
 		deferBackgroundLoad: true,
 		backgroundPosition: "right 20% center",
 		textAnchor: "top-center",
@@ -141,9 +141,9 @@ const GEARS_CARDS: ReadonlyArray<MediaCardConfig> = [
 	},
 	{
 		label: "Services",
-		href: "/gears/services",
+		href: "/gears",
 		className: "nav-gears-card-services",
-		backgroundImage: "/assets/shared/placeholder.png",
+		backgroundImage: "/assets/shared/mats.webp",
 		deferBackgroundLoad: true,
 		backgroundPosition: "left 20% center",
 		textAnchor: "bottom-left",
@@ -154,9 +154,9 @@ const GEARS_CARDS: ReadonlyArray<MediaCardConfig> = [
 	},
 	{
 		label: "Chargers",
-		href: "/gears/chargers",
+		href: "/gears",
 		className: "nav-gears-card-chargers",
-		backgroundImage: "/assets/shared/placeholder.png",
+		backgroundImage: "/assets/shared/charger.webp",
 		deferBackgroundLoad: true,
 		backgroundPosition: "center",
 		textAnchor: "bottom-left",
@@ -643,16 +643,16 @@ class Navbar extends View<"nav"> {
 					<section class="nav-mega" data-menu="gears" aria-label="Gears menu">
 						<div class="nav-mega-links">
 							<p class="nav-mega-title">Gears</p>
-							<ul class="nav-mega-list">
-								<li>
-									<a class="nav-mega-link" href="/gears/all">All</a>
-								</li>
-								<li>
-									<a class="nav-mega-link" href="/gears/wheels">Wheels</a>
-								</li>
-								<li><a class="nav-mega-link" href="/gears/chargers">Chargers</a></li>
-								<li><a class="nav-mega-link" href="/gears/services">Services</a></li>
-							</ul>
+								<ul class="nav-mega-list">
+									<li>
+										<a class="nav-mega-link" href="/gears">All</a>
+									</li>
+									<li>
+										<a class="nav-mega-link" href="/gears">Wheels</a>
+									</li>
+									<li><a class="nav-mega-link" href="/gears">Chargers</a></li>
+									<li><a class="nav-mega-link" href="/gears">Services</a></li>
+								</ul>
 						</div>
 
 						<!-- Card-based media area for gears -->

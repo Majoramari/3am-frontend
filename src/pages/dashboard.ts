@@ -1,6 +1,6 @@
 import { Button } from "@components/button";
 import { dashboardApi, type Product, productsApi } from "@lib/api";
-import type { Category, DashboardDTO } from "@lib/api/auth.types";
+import type { Category } from "@lib/api/auth.types";
 import { isAdmin, isAuthenticated, requireAdmin } from "@lib/authGuard";
 import { optimizeImageToWebp } from "@lib/imageOptimization";
 import { emitToast } from "@lib/toastBus";
@@ -12,8 +12,6 @@ type DashboardMetric = {
 };
 
 type FormFeedbackState = "success" | "error";
-
-const MAX_PAYLOAD_METRICS = 8;
 
 const isFiniteNumber = (value: unknown): value is number =>
 	typeof value === "number" && Number.isFinite(value);
@@ -44,7 +42,6 @@ const currencyFormatter = new Intl.NumberFormat("en-US", {
 export class DashboardPage extends View<"section"> {
 	private isLoading = true;
 	private error: string | null = null;
-	private payload: DashboardDTO = null;
 	private categories: Category[] = [];
 	private isLoadingCategories = false;
 	private isSubmittingProduct = false;
@@ -84,7 +81,7 @@ export class DashboardPage extends View<"section"> {
 		this.bindEvents();
 
 		try {
-			this.payload = await dashboardApi.getDashboard();
+			await dashboardApi.getDashboard();
 		} catch (error) {
 			console.error("Failed to load dashboard:", error);
 			const message =
@@ -215,106 +212,6 @@ export class DashboardPage extends View<"section"> {
 		}
 	}
 
-	private buildPayloadMetrics(payload: DashboardDTO): DashboardMetric[] {
-		if (
-			payload === null ||
-			Array.isArray(payload) ||
-			typeof payload !== "object"
-		) {
-			return this.buildPrimitiveMetrics(payload);
-		}
-
-		const metrics: DashboardMetric[] = [];
-		for (const [key, value] of Object.entries(payload)) {
-			if (metrics.length >= MAX_PAYLOAD_METRICS) {
-				break;
-			}
-
-			const label = this.formatLabel(key);
-			if (value === null) {
-				metrics.push({ label, value: "-" });
-				continue;
-			}
-
-			if (typeof value === "number" && Number.isFinite(value)) {
-				metrics.push({ label, value: this.formatNumeric(value) });
-				continue;
-			}
-
-			if (typeof value === "string") {
-				metrics.push({ label, value });
-				continue;
-			}
-
-			if (typeof value === "boolean") {
-				metrics.push({ label, value: value ? "Yes" : "No" });
-				continue;
-			}
-
-			if (Array.isArray(value)) {
-				metrics.push({
-					label,
-					value: `${value.length} ${value.length === 1 ? "item" : "items"}`,
-				});
-				continue;
-			}
-
-			if (typeof value === "object") {
-				const objectSize = Object.keys(value).length;
-				metrics.push({
-					label,
-					value: `${objectSize} fields`,
-				});
-			}
-		}
-
-		if (metrics.length > 0) {
-			return metrics;
-		}
-
-		return [
-			{
-				label: "Fields",
-				value: String(Object.keys(payload).length),
-			},
-		];
-	}
-
-	private buildPrimitiveMetrics(payload: DashboardDTO): DashboardMetric[] {
-		if (Array.isArray(payload)) {
-			return [
-				{
-					label: "Records",
-					value: String(payload.length),
-				},
-			];
-		}
-
-		if (payload === null) {
-			return [{ label: "Response", value: "Empty" }];
-		}
-
-		if (typeof payload === "number" && Number.isFinite(payload)) {
-			return [
-				{
-					label: "Response",
-					value: this.formatNumeric(payload),
-				},
-			];
-		}
-
-		if (typeof payload === "boolean") {
-			return [
-				{
-					label: "Response",
-					value: payload ? "Yes" : "No",
-				},
-			];
-		}
-
-		return [{ label: "Response", value: String(payload) }];
-	}
-
 	private buildInventoryMetrics(): DashboardMetric[] {
 		const totalProducts = this.products.length;
 		const totalStock = this.products.reduce(
@@ -347,14 +244,6 @@ export class DashboardPage extends View<"section"> {
 			{ label: "Categories", value: this.formatNumeric(categories) },
 			{ label: "Avg Price", value: currencyFormatter.format(avgPrice) },
 		];
-	}
-
-	private formatLabel(label: string): string {
-		return label
-			.replace(/([a-z])([A-Z])/g, "$1 $2")
-			.replace(/[_-]+/g, " ")
-			.trim()
-			.replace(/^./, (char) => char.toUpperCase());
 	}
 
 	private formatNumeric(value: number): string {
@@ -881,10 +770,6 @@ export class DashboardPage extends View<"section"> {
 	}
 
 	render(): DocumentFragment {
-		const payloadMetrics =
-			this.isLoading || this.error
-				? []
-				: this.buildPayloadMetrics(this.payload);
 		const inventoryMetrics = this.buildInventoryMetrics();
 
 		return this.tpl`
@@ -1032,11 +917,6 @@ export class DashboardPage extends View<"section"> {
 								"Computed from /api/Product for live stock and pricing.",
 								inventoryMetrics,
 							)}
-							${this.renderMetricSection(
-								"Backend Snapshot",
-								"Raw overview from /api/Dashboard.",
-								payloadMetrics,
-							)}
 						`
 						: ""
 				}
@@ -1045,7 +925,7 @@ export class DashboardPage extends View<"section"> {
 					<div class="dashboard-products__header">
 						<h2 class="dashboard-products__title">Catalog</h2>
 						<p class="dashboard-products__description">
-							Edit price and stock inline using the latest Product endpoints.
+							Edit price and stock inline.
 						</p>
 					</div>
 

@@ -38,7 +38,7 @@ export type VehicleUpgradeOption = {
 	description: string;
 	price: number;
 	included: boolean;
-	image: string;
+	image?: string;
 };
 
 export type VehicleAccessoryOption = {
@@ -74,6 +74,8 @@ export type VehicleBuildConfig = {
 	detailImages: {
 		build: ReadonlyArray<VehicleBuildDetailImage>;
 	};
+	hideInteriorSection?: boolean;
+	hideUpgradeImages?: boolean;
 	defaultPaintId?: string;
 	defaultWheelId?: string;
 	defaultInteriorId?: string;

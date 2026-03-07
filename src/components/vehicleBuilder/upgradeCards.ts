@@ -4,6 +4,7 @@ import type { VehicleUpgradeOption } from "./types";
 type VehicleUpgradeCardsOptions = {
 	upgrades: ReadonlyArray<VehicleUpgradeOption>;
 	defaultSelectedIds: ReadonlySet<string>;
+	hideImages?: boolean;
 };
 
 const usdWholeFormatter = new Intl.NumberFormat("en-US", {
@@ -18,11 +19,13 @@ const toUsdWhole = (value: number): string => usdWholeFormatter.format(value);
 export class VehicleUpgradeCards extends View<"div"> {
 	private readonly upgrades: ReadonlyArray<VehicleUpgradeOption>;
 	private readonly defaultSelectedIds: ReadonlySet<string>;
+	private readonly hideImages: boolean;
 
 	constructor(options: VehicleUpgradeCardsOptions) {
 		super("div", { className: "dusk-build__option-list" });
 		this.upgrades = options.upgrades;
 		this.defaultSelectedIds = options.defaultSelectedIds;
+		this.hideImages = options.hideImages ?? false;
 	}
 
 	render(): DocumentFragment {
@@ -33,12 +36,18 @@ export class VehicleUpgradeCards extends View<"div"> {
 				return this.tpl`
 					<button
 						type="button"
-						class="dusk-build__option-card ${isDefaultSelected ? "is-selected" : ""}"
+						class="dusk-build__option-card ${this.hideImages ? "is-no-media" : ""} ${
+							isDefaultSelected ? "is-selected" : ""
+						}"
 						data-vehicle-build-upgrade="${upgrade.id}"
 						aria-pressed="${isDefaultSelected ? "true" : "false"}"
 						${upgrade.included ? "disabled" : ""}
 					>
-						<img src="${upgrade.image}" alt="${upgrade.label}" loading="lazy" />
+						${
+							this.hideImages
+								? ""
+								: this.tpl`<img src="${upgrade.image}" alt="${upgrade.label}" loading="lazy" />`
+						}
 						<span class="dusk-build__option-copy">
 							<span class="dusk-build__option-title">${upgrade.label}</span>
 							<span class="dusk-build__option-description">${upgrade.description}</span>

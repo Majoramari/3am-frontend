@@ -78,6 +78,7 @@ export class HomeAdventureMediaSection extends View<"section"> {
 						className: "adventure-media__video",
 						autoPlay: true,
 						muted: true,
+						loop: true,
 						playsInline: true,
 						preload: "none",
 					})}
