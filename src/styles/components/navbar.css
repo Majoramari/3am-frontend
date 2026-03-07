@@ -37,61 +37,6 @@
 		--nav-blur-strength: 10px;
 	}
 
-	.nav-shell[data-top-contrast-mode="dark"]:not(.is-scrolled):not(
-			.is-mobile-open
-		):not([data-active-menu]):not(:hover):not(:focus-within) {
-		--nav-border-color: transparent;
-		--nav-surface-color: transparent;
-		--nav-text-color: var(--color-black);
-		--nav-blur-strength: 0px;
-	}
-
-	.nav-shell[data-top-contrast-mode="light"]:not(.is-scrolled):not(
-			.is-mobile-open
-		):not([data-active-menu]):not(:hover):not(:focus-within) {
-		--nav-border-color: transparent;
-		--nav-surface-color: transparent;
-		--nav-text-color: var(--color-white);
-		--nav-blur-strength: 0px;
-	}
-
-	.nav-shell[data-top-contrast-mode="dark"]:not(.is-scrolled):not(
-			.is-mobile-open
-		):not([data-active-menu]):not(:hover):not(:focus-within)
-		:is(.ui-button--outline, .ui-button--text) {
-		--ui-button-text: var(--color-black);
-	}
-
-	.nav-shell[data-top-contrast-mode="dark"]:not(.is-scrolled):not(
-			.is-mobile-open
-		):not([data-active-menu]):not(:hover):not(:focus-within)
-		.ui-button--outline {
-		color: var(--color-black);
-	}
-
-	.nav-shell[data-top-contrast-mode="dark"]:not(.is-scrolled):not(
-			.is-mobile-open
-		):not([data-active-menu]):not(:hover):not(:focus-within)
-		.ui-button--text {
-		color: var(--color-black);
-	}
-
-	.nav-shell[data-top-contrast-mode="dark"]:not(.is-scrolled):not(
-			.is-mobile-open
-		):not([data-active-menu]):not(:hover):not(:focus-within)
-		:is(.ui-button--outline, .ui-button--text)
-		> .ui-button__label {
-		color: var(--color-black);
-	}
-
-	.nav-shell[data-top-contrast-mode="dark"]:not(.is-scrolled):not(
-			.is-mobile-open
-		):not([data-active-menu]):not(:hover):not(:focus-within)
-		:is(.nav-menu-trigger, .nav-link, .nav-mobile-link, .nav-mobile-top-sign-in)
-		> .ui-button__label {
-		color: var(--color-black);
-	}
-
 	.nav-inner {
 		position: relative;
 		width: 100%;
@@ -223,21 +168,6 @@
 	.nav-mobile-toggle:is(:hover, :focus-visible) {
 		background-color: rgb(255 255 255 / 14%);
 		border-color: rgb(255 255 255 / 20%);
-	}
-
-	.nav-shell[data-top-contrast-mode="dark"]:not(.is-scrolled):not(
-			.is-mobile-open
-		):not([data-active-menu])
-		.nav-mobile-toggle:is(:hover, :focus-visible) {
-		background-color: rgb(0 0 0 / 10%);
-		border-color: rgb(0 0 0 / 18%);
-	}
-
-	.nav-shell[data-top-contrast-mode="dark"]:not(.is-scrolled):not(
-			.is-mobile-open
-		):not([data-active-menu]):not(:hover):not(:focus-within)
-		.nav-logo-image {
-		filter: brightness(0) saturate(100%);
 	}
 
 	.nav-mobile-toggle:focus-visible {

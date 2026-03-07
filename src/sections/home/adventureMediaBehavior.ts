@@ -2,6 +2,7 @@ import type { CleanupBag } from "@lib/cleanup";
 
 const PROGRAMMATIC_SCROLL_SETTLE_MS = 150;
 const ACTIVE_INDEX_HYSTERESIS_PX = 20;
+const VIDEO_END_RESTART_BUFFER_SECONDS = 0.2;
 
 const parseIndex = (value: string | undefined): number | null => {
 	const parsed = Number.parseInt(value ?? "", 10);
@@ -22,6 +23,9 @@ export const setupHomeAdventureMedia = (
 	const cards = Array.from(
 		root.querySelectorAll<HTMLElement>("[data-adventure-card-index]"),
 	);
+	const cardVideos = cards.map((card) =>
+		card.querySelector<HTMLVideoElement>(".adventure-media__video"),
+	);
 
 	if (!rail || pills.length === 0 || cards.length === 0) {
 		return;
@@ -32,10 +36,97 @@ export const setupHomeAdventureMedia = (
 	let settleTimerId = 0;
 	let pendingProgrammaticIndex: number | null = null;
 
+	const getVideoSourceKey = (video: HTMLVideoElement): string => {
+		const source = video.querySelector<HTMLSourceElement>("source");
+		return (
+			video.currentSrc ||
+			video.getAttribute("src") ||
+			source?.getAttribute("src") ||
+			source?.dataset.lazySrc ||
+			""
+		);
+	};
+
+	const seekVideo = (video: HTMLVideoElement, timeSeconds: number): void => {
+		const applySeek = (): void => {
+			const duration = Number.isFinite(video.duration) ? video.duration : 0;
+			const maxTime = duration > 0 ? Math.max(0, duration - 0.05) : timeSeconds;
+			const nextTime = Math.min(Math.max(0, timeSeconds), maxTime);
+			video.currentTime = nextTime;
+		};
+
+		if (video.readyState >= 1) {
+			applySeek();
+			return;
+		}
+
+		video.addEventListener(
+			"loadedmetadata",
+			() => {
+				applySeek();
+			},
+			{ once: true },
+		);
+	};
+
+	const syncActiveVideo = (
+		previousIndex: number | null = null,
+		forcePlayActive: boolean = false,
+	): void => {
+		const activeVideo = cardVideos[activeIndex];
+		if (!activeVideo) {
+			return;
+		}
+
+		const previousVideo =
+			previousIndex === null ? null : (cardVideos[previousIndex] ?? null);
+		const previousTime =
+			previousVideo && Number.isFinite(previousVideo.currentTime)
+				? previousVideo.currentTime
+				: 0;
+
+		for (const [index, video] of cardVideos.entries()) {
+			if (!video || index === activeIndex) {
+				continue;
+			}
+			video.pause();
+		}
+
+		if (
+			previousVideo &&
+			previousVideo !== activeVideo &&
+			previousTime > 0 &&
+			getVideoSourceKey(previousVideo) === getVideoSourceKey(activeVideo)
+		) {
+			const previousDuration = Number.isFinite(previousVideo.duration)
+				? previousVideo.duration
+				: 0;
+			const shouldRestart =
+				previousVideo.ended ||
+				(previousDuration > 0 &&
+					previousTime >= previousDuration - VIDEO_END_RESTART_BUFFER_SECONDS);
+
+			seekVideo(activeVideo, shouldRestart ? 0 : previousTime);
+		}
+
+		if (forcePlayActive || !activeVideo.paused) {
+			if (activeVideo.ended) {
+				activeVideo.currentTime = 0;
+			}
+			const playPromise = activeVideo.play();
+			if (playPromise instanceof Promise) {
+				void playPromise.catch(() => {
+					// Ignore autoplay/playback-blocking errors.
+				});
+			}
+		}
+	};
+
 	const setActivePill = (targetIndex: number): void => {
 		if (targetIndex === activeIndex) {
 			return;
 		}
+		const previousIndex = activeIndex;
 		activeIndex = targetIndex;
 
 		for (const [index, pill] of pills.entries()) {
@@ -43,6 +134,8 @@ export const setupHomeAdventureMedia = (
 			pill.classList.toggle("is-active", isActive);
 			pill.setAttribute("aria-pressed", String(isActive));
 		}
+
+		syncActiveVideo(previousIndex, true);
 	};
 
 	const scheduleScrollSettle = (): void => {
@@ -142,6 +235,7 @@ export const setupHomeAdventureMedia = (
 	);
 
 	scrollToCard(0, "auto");
+	syncActiveVideo(null, true);
 
 	cleanup.add(() => {
 		if (rafId !== 0) {

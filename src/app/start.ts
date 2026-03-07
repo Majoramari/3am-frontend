@@ -1,7 +1,23 @@
+import { CartDock } from "@app/cart/cartDock";
 import { routes } from "@app/routes";
+import { Footer } from "@components/footer";
 import Navbar from "@components/navbar";
+import { ToastStack } from "@components/toastStack";
 import { createLazyMediaController } from "@lib/lazyMedia";
-import { createRouter } from "@lib/router";
+import { createRouter, setRouter } from "@lib/router";
+
+const isBuilderRoute = (path: string): boolean =>
+	path.startsWith("/dusk/build") ||
+	path.startsWith("/dusk/buy") ||
+	path.startsWith("/dawn/build") ||
+	path.startsWith("/dawn/buy");
+
+const isGearsCatalogRoute = (path: string): boolean => path === "/gears";
+
+const hasPaymentResultQuery = (search: string): boolean => {
+	const params = new URLSearchParams(search);
+	return params.has("payment");
+};
 
 const isPlainLeftClick = (event: MouseEvent): boolean =>
 	event.button === 0 &&
@@ -38,6 +54,17 @@ export const startApp = (): void => {
 		throw new Error("App root not found");
 	}
 
+	if (
+		window.location.pathname === "/" &&
+		hasPaymentResultQuery(window.location.search)
+	) {
+		window.history.replaceState(
+			{},
+			"",
+			`/checkout${window.location.search}${window.location.hash}`,
+		);
+	}
+
 	const navbar = new Navbar();
 	navbar.mount(app);
 
@@ -45,13 +72,36 @@ export const startApp = (): void => {
 	main.className = "page";
 	app.appendChild(main);
 
-	const lazyMedia = createLazyMediaController();
+	const footer = new Footer();
+	footer.mount(app);
+
+	const cartDock = new CartDock();
+	cartDock.mount(app);
+
+	const toastStack = new ToastStack();
+	toastStack.mount(document.body);
+
+	const lazyMedia = createLazyMediaController({
+		// Preload one slide ahead horizontally to avoid placeholder flashes in carousels.
+		rootMargin: "300px 300px",
+	});
 	const router = createRouter(main, routes, (path) => {
+		const onBuilderRoute = isBuilderRoute(path);
+		document.body.classList.toggle("route-dusk-build", onBuilderRoute);
+		if (onBuilderRoute) {
+			window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+		}
+		document.body.classList.toggle("route-gears", isGearsCatalogRoute(path));
+
 		navbar.setCurrentPath(path);
-		lazyMedia.scan(main);
+		cartDock.setCurrentPath(path);
+		lazyMedia.scan(main); // scan on route change
 	});
 
-	app.addEventListener("click", (event) => {
+	// Set the singleton router for use in other modules
+	setRouter(router);
+
+	document.addEventListener("click", (event) => {
 		const link = getInternalLink(event);
 		if (!link) return;
 
@@ -62,6 +112,7 @@ export const startApp = (): void => {
 		router.navigate(href);
 	});
 
-	lazyMedia.scan(app);
+	lazyMedia.scan(app); // initial scan
+	cartDock.setCurrentPath(window.location.pathname);
 	router.start();
 };

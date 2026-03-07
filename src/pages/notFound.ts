@@ -3,38 +3,24 @@ import { View } from "@lib/view";
 
 export class NotFoundPage extends View<"section"> {
 	constructor() {
-		super("section");
+		super("section", { className: "not-found-page" });
 	}
 
 	render(): DocumentFragment {
 		return html`
-			 
-  <div class="hero">
-    <div class="txt">
-      <h2>Being lost can be an adventure</h2>
-      <p>But not right now.</p>
-      <button class="returnhome">Return Home</button>
-    </div>
-
-    <div class="box">
-      <div>
-        <h2>Never miss an adventure — get updates, offers and invites.</h2>
-      </div>
-      <div class="right-inputs">
-        <input type="email" id="email" placeholder="Email*" required>
-        <input type="text" id="code" placeholder="Postal Code*" required>
-        <div  class="checkbox">
-          <label>
-            <input type="checkbox" required>
-          </label>
-          <p class="legal">By submitting, I agree to receive future communications and I have read and agree to Rivian's <a href="#">Terms</a> and <a href="#">Data Privacy Notice</a>.</p>
-        </div>
-        <button type="submit">Subscribe</button>
-      </div>
-    </div>
-
-
-  </div>
+			<div class="not-found">
+				<p class="not-found__code">404</p>
+				<h1 class="not-found__title">Being lost can be an adventure</h1>
+				<p class="not-found__subtitle">But not right now.</p>
+				<div class="not-found__actions">
+					<a class="not-found__action not-found__action--primary" href="/">
+						Return Home
+					</a>
+					<a class="not-found__action not-found__action--ghost" href="/gears">
+						Explore Gears
+					</a>
+				</div>
+			</div>
 		`;
 	}
 }

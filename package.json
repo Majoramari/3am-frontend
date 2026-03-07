@@ -4,7 +4,13 @@
 	"version": "0.0.5",
 	"type": "module",
 	"author": "Muhannad Hassan",
-	"contributors": [],
+	"contributors": [
+		"Muhannad Hassan",
+		"Amr Mousa",
+		"Ali Mustafa",
+		"Momen Ayman",
+		"Basma Bahaa"
+	],
 	"license": "0BSD",
 	"scripts": {
 		"dev": "vite",
@@ -16,7 +22,7 @@
 		"budget": "size-limit",
 		"test": "bun test",
 		"preview": "vite preview",
-		"optimize": "TARGET_SIZE_KB=120 MIN_QUALITY=88 MAX_QUALITY=98 REOPTIMIZE_WEBP=true WEBP_LOSSLESS=false bash scripts/optimize-images.sh",
+		"optimize": "TARGET_SIZE_KB=100 MIN_QUALITY=88 MAX_QUALITY=98 REOPTIMIZE_WEBP=true WEBP_LOSSLESS=false bash scripts/optimize-images.sh",
 		"lint": "biome check .",
 		"format": "biome format --write ."
 	},
@@ -62,5 +68,8 @@
 	},
 	"overrides": {
 		"vite": "^8.0.0-beta.13"
+	},
+	"dependencies": {
+		"gsap": "^3.14.2"
 	}
 }

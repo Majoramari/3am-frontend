@@ -89,4 +89,8 @@ export type VehicleLineupModel = {
 	rangeLabel: string;
 	performanceLabel: string;
 	image: string;
+	specs?: ReadonlyArray<{
+		label: string;
+		value: string;
+	}>;
 };

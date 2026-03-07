@@ -7,11 +7,11 @@ const BASE_PREFETCH_RADIUS = 2;
 const DRAG_PREFETCH_RADIUS = 8;
 const INTRO_START_FRAME_NUMBER = 100;
 const INTRO_END_FRAME_INDEX = 0;
-const INTRO_START_TRIGGER_RATIO = 0.5;
+const INTRO_START_TRIGGER_RATIO = 0.9;
 const INTRO_END_TRIGGER_RATIO = 0.12;
 const PRELOAD_INITIAL_DELAY_MS = 260;
 const PRELOAD_INTERVAL_MS = 120;
-const PRELOAD_ROOT_MARGIN = "420px 0px";
+const PRELOAD_ROOT_MARGIN = "900px 0px";
 
 const normalizeFrameIndex = (value: number, frameCount: number): number => {
 	const wrapped = value % frameCount;

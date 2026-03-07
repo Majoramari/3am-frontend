@@ -15,6 +15,13 @@ const toUsdWhole = (value: number): string => usdWholeFormatter.format(value);
 const toLeaseEstimate = (totalPrice: number): string =>
 	`${toUsdWhole(Math.round(totalPrice / 96))}/mo`;
 
+const KM_PER_MILE = 1.609344;
+const KPH_100_IN_MPH = 62.13712;
+const toRangeKilometers = (miles: number): number =>
+	Math.round(miles * KM_PER_MILE);
+const toZeroToHundredTime = (zeroToSixtySec: number): string =>
+	`${(zeroToSixtySec * (KPH_100_IN_MPH / 60)).toFixed(1)} sec`;
+
 const toSlugSegment = (value: string): string =>
 	value
 		.toLowerCase()
@@ -177,7 +184,7 @@ export class VehicleBuildJourneySection extends View<"section"> {
 									${this.config.drivetrain}
 									<span aria-hidden="true">|</span>
 									<span data-vehicle-build-accel>
-										${`0-60 in ${defaultWheel.zeroToSixtySec.toFixed(1)} sec`}
+										${`0-100 in ${toZeroToHundredTime(defaultWheel.zeroToSixtySec)}`}
 									</span>
 									<span aria-hidden="true">|</span>
 									${this.config.horsepower} hp
@@ -185,7 +192,7 @@ export class VehicleBuildJourneySection extends View<"section"> {
 								<p class="dusk-build__panel-price-line">
 									Range
 									<strong data-vehicle-build-range>
-										${defaultWheel.rangeMiles} mi range (EPA est.)
+										${toRangeKilometers(defaultWheel.rangeMiles)} km range (est.)
 									</strong>
 								</p>
 							</header>
@@ -255,8 +262,10 @@ export class VehicleBuildJourneySection extends View<"section"> {
 									)}
 								</div>
 								<p class="dusk-build__wheel-range-row">
-									<span>EPA est. range</span>
-									<span data-vehicle-build-range-miles>${defaultWheel.rangeMiles} mi</span>
+									<span>Estimated range</span>
+									<span data-vehicle-build-range-miles>
+										${toRangeKilometers(defaultWheel.rangeMiles)} km
+									</span>
 								</p>
 							</section>
 
@@ -487,11 +496,11 @@ export class VehicleBuildJourneySection extends View<"section"> {
 							${this.config.drivetrain}
 							<span aria-hidden="true">|</span>
 							<span data-vehicle-build-range>
-								${defaultWheel.rangeMiles} mi range (EPA est.)
+								${toRangeKilometers(defaultWheel.rangeMiles)} km range (est.)
 							</span>
 							<span aria-hidden="true">|</span>
 							<span data-vehicle-build-accel>
-								${`0-60 in ${defaultWheel.zeroToSixtySec.toFixed(1)} sec`}
+								${`0-100 in ${toZeroToHundredTime(defaultWheel.zeroToSixtySec)}`}
 							</span>
 						</p>
 					</div>

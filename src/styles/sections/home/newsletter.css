@@ -3,18 +3,60 @@
 		inline-size: 100%;
 		padding-block: clamp(4rem, 7vw, 8rem) clamp(3.2rem, 5vw, 5.6rem);
 		padding-inline: clamp(1.2rem, 3.2vw, 4rem);
+		position: relative;
+		overflow: hidden;
+		isolation: isolate;
 		background:
 			radial-gradient(
-				140% 85% at 50% -8%,
-				rgb(6 29 44 / 0.88),
-				rgb(53 70 81 / 0.95) 52%,
-				rgb(70 89 99) 100%
+				140% 96% at 50% 50%,
+				rgb(230 155 0 / 0.58) 0%,
+				rgb(230 155 0 / 0.2) 26%,
+				rgb(18 12 3 / 0.94) 55%,
+				rgb(0 0 0 / 1) 100%
+			),
+			linear-gradient(
+				180deg,
+				#020202 0%,
+				#060606 22%,
+				#e69b00 50%,
+				#060606 78%,
+				#020202 100%
 			);
+	}
+
+	.page-section.newsletter::before {
+		content: "";
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		z-index: 0;
+		background-image: url("/assets/shared/noise.svg");
+		background-repeat: repeat;
+		background-size: 360px 360px;
+		mix-blend-mode: soft-light;
+		opacity: 0.2;
+	}
+
+	.page-section.newsletter::after {
+		content: "";
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		z-index: 0;
+		background: radial-gradient(
+			132% 108% at 50% 48%,
+			transparent 45%,
+			rgb(0 0 0 / 0.5) 100%
+		);
+		mix-blend-mode: multiply;
+		opacity: 0.62;
 	}
 
 	.newsletter__shell {
 		inline-size: min(100%, 128rem);
 		margin-inline: auto;
+		position: relative;
+		z-index: 1;
 		display: grid;
 		gap: clamp(2.6rem, 4vw, 4.4rem);
 	}

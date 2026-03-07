@@ -29,14 +29,14 @@
 }
 
 .gears-products__count {
-	font-size: 1.24rem;
+	font-size: 1.42rem;
 	color: #888899;
 	margin: 0;
 }
 
 .gears-products__feedback {
 	min-height: 1.2rem;
-	font-size: 1rem;
+	font-size: 1.2rem;
 	margin: 0.35rem 0 0;
 	color: #888899;
 }
@@ -62,13 +62,13 @@
 
 .gears-products__state-title {
 	margin: 0;
-	font-size: 1.35rem;
+	font-size: 1.8rem;
 	color: #ffffff;
 }
 
 .gears-products__state-copy {
 	margin: 0;
-	font-size: 1.05rem;
+	font-size: 1.35rem;
 	color: #9c9cb4;
 }
 
@@ -88,7 +88,7 @@
 	flex-direction: column;
 	align-items: flex-start;
 	gap: 0.45rem;
-	font-size: 1.24rem;
+	font-size: 1.38rem;
 	font-weight: 600;
 	color: #b8b8c8;
 }
@@ -99,7 +99,7 @@
 	color: #ffffff;
 	padding: 0.88rem 1.14rem;
 	border-radius: 0.6rem;
-	font-size: 1.18rem;
+	font-size: 1.32rem;
 	cursor: pointer;
 	outline: none;
 	transition:
@@ -123,7 +123,7 @@
 	border: 1px solid #2a2a3d;
 	background: #141425;
 	color: #d0d0e2;
-	font-size: 1.18rem;
+	font-size: 1.32rem;
 	font-weight: 600;
 	cursor: pointer;
 	min-height: 3.2rem;
@@ -159,7 +159,7 @@
 
 .gears-products__categories-title {
 	margin: 0;
-	font-size: 1.58rem;
+	font-size: 2rem;
 	font-weight: 700;
 	color: #f5f6fb;
 	letter-spacing: 0.04em;
@@ -167,7 +167,7 @@
 
 .gears-products__categories-status {
 	margin: 0;
-	font-size: 1.2rem;
+	font-size: 1.35rem;
 	color: #9d9db4;
 }
 
@@ -183,7 +183,7 @@
 	color: #d6d6e8;
 	padding: 0.68rem 1.12rem;
 	border-radius: 999px;
-	font-size: 1.16rem;
+	font-size: 1.3rem;
 	font-weight: 600;
 	cursor: pointer;
 	transition:
@@ -214,7 +214,7 @@
 /* Product Grid */
 .gears-products__grid {
 	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+	grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
 	gap: 2rem;
 	margin-bottom: 3rem;
 }
@@ -271,13 +271,6 @@
 	margin-top: auto;
 }
 
-.gears-product-card__skeleton-button {
-	width: 100%;
-	height: 2.7rem;
-	margin-top: 0.6rem;
-	border-radius: 0.8rem;
-}
-
 .gears-skeleton-block {
 	background: linear-gradient(
 		105deg,
@@ -301,14 +294,14 @@
 }
 
 .gears-product-card:hover {
-	border-color: #33334d;
-	transform: translateY(-4px);
-	box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+	border-color: #e69b00;
+	transform: none;
+	box-shadow: 0 0 0 1px rgb(230 155 0 / 0.35);
 }
 
 .gears-product-card__image-wrapper {
 	display: block;
-	aspect-ratio: 1;
+	aspect-ratio: 4 / 3;
 	background: #1a1a2e;
 	overflow: hidden;
 }
@@ -326,26 +319,56 @@
 }
 
 .gears-product-card__content {
-	padding: 1.5rem;
+	padding: 1.6rem;
 	display: flex;
 	flex-direction: column;
-	gap: 0.8rem;
+	gap: 0.9rem;
 	flex: 1;
 }
 
+.gears-product-card__top {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+}
+
 .gears-product-card__category {
-	font-size: 0.95rem;
-	color: #666677;
+	font-size: 1.12rem;
+	color: #9396b1;
 	text-transform: uppercase;
 	letter-spacing: 0.1em;
+	font-weight: 700;
+}
+
+.gears-product-card__stock {
+	padding: 0.44rem 0.72rem;
+	border-radius: 999px;
+	font-size: 1.05rem;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	font-weight: 700;
+	border: 1px solid transparent;
+}
+
+.gears-product-card__stock.is-in {
+	background: rgb(62 201 159 / 0.14);
+	border-color: rgb(62 201 159 / 0.3);
+	color: #91f0d0;
+}
+
+.gears-product-card__stock.is-out {
+	background: rgb(255 122 139 / 0.14);
+	border-color: rgb(255 122 139 / 0.28);
+	color: #ffc2cb;
 }
 
 .gears-product-card__name {
 	margin: 0;
-	font-size: 1.34rem;
+	font-size: 1.9rem;
 	font-weight: 600;
 	color: #ffffff;
-	line-height: 1.4;
+	line-height: 1.35;
 }
 
 .gears-product-card__name a {
@@ -358,37 +381,39 @@
 	color: #e94560;
 }
 
-.gears-product-card__meta {
-	font-size: 1.05rem;
-	color: #81819a;
-	text-transform: uppercase;
-	letter-spacing: 0.08em;
+.gears-product-card__excerpt {
+	margin: 0;
+	font-size: 1.35rem;
+	line-height: 1.52;
+	color: #9ea1be;
 }
 
-.gears-product-card__price {
+.gears-product-card__footer {
 	display: flex;
 	align-items: center;
-	gap: 0.8rem;
+	justify-content: space-between;
+	gap: 1rem;
 	margin-top: auto;
+	padding-top: 0.3rem;
 }
 
 .gears-product-card__price-current {
-	font-size: 1.7rem;
+	font-size: 1.9rem;
 	font-weight: 700;
-	color: #e94560;
+	color: #ffd180;
 }
 
-.gears-product-card__actions {
-	margin-top: 0.5rem;
+.gears-product-card__view-link {
+	font-size: 1.15rem;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: #f1c0ca;
+	text-decoration: none;
 }
 
-.gears-product-card__add-to-cart {
-	width: 100%;
-}
-
-.gears-product-card__add-to-cart.is-added {
-	background: #4ecdc4;
-	border-color: #4ecdc4;
+.gears-product-card__view-link:hover {
+	color: #ffdce3;
 }
 
 /* Load More */
@@ -455,6 +480,6 @@
 	}
 
 	.gears-products__category-chip {
-		font-size: 1rem;
+		font-size: 1.2rem;
 	}
 }

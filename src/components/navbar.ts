@@ -1,6 +1,8 @@
 import { Button, type ButtonVariant } from "@components/button";
 import { MediaCard, type MediaCardConfig } from "@components/mediaCard";
+import { tokenHasRole } from "@lib/jwtClaims";
 import { getRouter } from "@lib/router";
+import { sanitizeMediaUrl, toSafeCssUrlValue } from "@lib/safeUrl";
 import { View } from "@lib/view";
 
 type NavMenuName = "dusk" | "dawn" | "gears";
@@ -26,8 +28,6 @@ type MobileNavItem = {
 	className?: string;
 	authAction?: "sign-out";
 };
-
-type NavTopContrastMode = "light" | "dark";
 
 const PRIMARY_NAV_ITEMS: ReadonlyArray<PrimaryNavItem> = [
 	{ menu: "dusk", label: "DUSK", href: "/dusk" },
@@ -111,69 +111,12 @@ const MOBILE_SIGN_OUT_ITEM: MobileNavItem = {
 
 const NAV_MEGA_PLACEHOLDER_IMAGE = "/assets/shared/placeholder.png";
 const NAV_MEGA_MEDIA_SOURCES = {
-	dusk: "/assets/dusk/dusk_transparent.webp",
-	dawn: "/assets/hero/slide-2-1440.webp",
+	dusk: "/assets/cars/dusk/nav/dusk.webp",
+	dawn: "/assets/cars/dawn/nav/dawn.webp",
 } as const satisfies Record<Exclude<NavMenuName, "gears">, string>;
 
-const ROLE_CLAIM_KEYS = [
-	"role",
-	"roles",
-	"http://schemas.microsoft.com/ws/2008/06/identity/claims/role",
-	"http://schemas.xmlsoap.org/ws/2005/05/identity/claims/role",
-] as const;
-
-const decodeJwtPayload = (token: string): Record<string, unknown> | null => {
-	const parts = token.split(".");
-	if (parts.length < 2) {
-		return null;
-	}
-
-	const decoder =
-		typeof globalThis.atob === "function" ? globalThis.atob : null;
-	if (!decoder) {
-		return null;
-	}
-
-	const payloadPart = parts[1];
-	const base64 = payloadPart
-		.replace(/-/g, "+")
-		.replace(/_/g, "/")
-		.padEnd(Math.ceil(payloadPart.length / 4) * 4, "=");
-
-	try {
-		return JSON.parse(decoder(base64)) as Record<string, unknown>;
-	} catch {
-		return null;
-	}
-};
-
 const hasAdminRole = (token: string | null): boolean => {
-	if (!token) {
-		return false;
-	}
-
-	const payload = decodeJwtPayload(token);
-	if (!payload) {
-		return false;
-	}
-
-	for (const key of ROLE_CLAIM_KEYS) {
-		const claim = payload[key];
-		if (typeof claim === "string" && claim.trim().toLowerCase() === "admin") {
-			return true;
-		}
-		if (
-			Array.isArray(claim) &&
-			claim.some(
-				(item) =>
-					typeof item === "string" && item.trim().toLowerCase() === "admin",
-			)
-		) {
-			return true;
-		}
-	}
-
-	return false;
+	return tokenHasRole(token, "admin");
 };
 
 /**
@@ -235,13 +178,6 @@ class Navbar extends View<"nav"> {
 	private static readonly MIN_SCROLL_DELTA_PX = 6;
 	private static readonly MENU_CLOSE_DELAY_MS = 100;
 	private static readonly MOBILE_BREAKPOINT_PX = 1100;
-	private static readonly MIN_TEXT_CONTRAST_RATIO = 4.5;
-	private static readonly TOP_CONTRAST_SAMPLE_X_RATIOS = [0.18, 0.5, 0.82];
-	private static readonly TOP_CONTRAST_SAMPLE_Y_RATIO = 0.55;
-	private static readonly TOP_CONTRAST_MIN_SAMPLE_Y_PX = 14;
-	private static readonly TOP_CONTRAST_WARMUP_STEPS = 18;
-	private static readonly TOP_CONTRAST_WARMUP_STEP_MS = 180;
-	private static readonly UNKNOWN_BACKDROP_LUMINANCE = 0.92;
 	private static readonly MOBILE_MENU_PANEL_ID = "nav-mobile-panel";
 	private static readonly MENU_NAMES = new Set<NavMenuName>([
 		"dusk",
@@ -342,12 +278,6 @@ class Navbar extends View<"nav"> {
 	private closeMenuTimerId: number | null = null;
 	private readonly loadedMenuMedia = new Set<NavMenuName>();
 	private suppressDesktopHoverUntilPointerLeave = false;
-	private topContrastRafId = 0;
-	private topContrastWarmupTimerId = 0;
-	private topContrastWarmupStepsLeft = 0;
-	private readonly contrastSampleCanvas = document.createElement("canvas");
-	private readonly contrastSampleContext =
-		this.contrastSampleCanvas.getContext("2d");
 
 	constructor() {
 		super("nav", { className: "nav-shell" });
@@ -376,37 +306,10 @@ class Navbar extends View<"nav"> {
 		this.cleanup.on(this.element, "focusin", this.handleMenuFocusIn);
 		this.cleanup.on(this.element, "pointerleave", this.handleMenuPointerLeave);
 		this.cleanup.on(this.element, "focusout", this.handleMenuFocusOut);
-		this.cleanup.on(document, "load", this.handleBackdropMediaUpdate, {
-			capture: true,
-		});
-		this.cleanup.on(document, "loadeddata", this.handleBackdropMediaUpdate, {
-			capture: true,
-		});
-		document.addEventListener(
-			"home-hero:slide-change",
-			this.handleHeroSlideChange,
-		);
-		this.cleanup.add(() => {
-			document.removeEventListener(
-				"home-hero:slide-change",
-				this.handleHeroSlideChange,
-			);
-		});
 		this.bindClickHandlers();
 
 		// Sync active-link state with the initial URL.
 		this.setCurrentPath(window.location.pathname);
-		this.scheduleTopContrastUpdate();
-		this.startTopContrastWarmup();
-	}
-
-	protected override onDestroy(): void {
-		// Why: this timeout is local component state, so clear it on teardown.
-		this.cancelMenuClose();
-		if (this.topContrastRafId !== 0) {
-			window.cancelAnimationFrame(this.topContrastRafId);
-		}
-		this.stopTopContrastWarmup();
 	}
 
 	private subscribeToAuthState(): void {
@@ -551,8 +454,6 @@ class Navbar extends View<"nav"> {
 		}
 
 		this.setMobileMenuOpen(false);
-		this.scheduleTopContrastUpdate();
-		this.startTopContrastWarmup();
 	}
 
 	/**
@@ -681,9 +582,9 @@ class Navbar extends View<"nav"> {
 						<div class="nav-mega-links">
 							<p class="nav-mega-title">Dusk</p>
 							<ul class="nav-mega-list">
-								<li><a class="nav-mega-link" href="/dusk/explore">Explore</a></li>
+								<li><a class="nav-mega-link" href="/dusk">Explore</a></li>
 								<li><a class="nav-mega-link" href="/dusk/build">Buy</a></li>
-								<li><a class="nav-mega-link" href="/dusk/demo">Demo Drive</a></li>
+								<li><a class="nav-mega-link" href="/demo?vehicle=dusk">Demo Drive</a></li>
 							</ul>
 						</div>
 						<a class="nav-mega-media" href="/dusk">
@@ -712,9 +613,9 @@ class Navbar extends View<"nav"> {
 						<div class="nav-mega-links">
 							<p class="nav-mega-title">Dawn</p>
 							<ul class="nav-mega-list">
-								<li><a class="nav-mega-link" href="/dawn/explore">Explore</a></li>
-								<li><a class="nav-mega-link" href="/dawn/buy">Buy</a></li>
-								<li><a class="nav-mega-link" href="/dawn/demo">Demo Drive</a></li>
+								<li><a class="nav-mega-link" href="/dawn">Explore</a></li>
+								<li><a class="nav-mega-link" href="/dawn/build">Buy</a></li>
+								<li><a class="nav-mega-link" href="/demo?vehicle=dawn">Demo Drive</a></li>
 							</ul>
 						</div>
 						<a class="nav-mega-media" href="/dawn">
@@ -770,25 +671,12 @@ class Navbar extends View<"nav"> {
 	private readonly handleScroll = (): void => {
 		this.updateScrolledState();
 		this.updateVisibilityState();
-		this.scheduleTopContrastUpdate();
 	};
 
 	private readonly handleResize = (): void => {
 		if (this.isDesktopViewport()) {
 			this.setMobileMenuOpen(false);
 		}
-		this.scheduleTopContrastUpdate();
-		this.startTopContrastWarmup();
-	};
-
-	private readonly handleBackdropMediaUpdate = (): void => {
-		this.scheduleTopContrastUpdate();
-		this.startTopContrastWarmup();
-	};
-
-	private readonly handleHeroSlideChange = (): void => {
-		this.scheduleTopContrastUpdate();
-		this.startTopContrastWarmup();
 	};
 
 	/**
@@ -798,8 +686,6 @@ class Navbar extends View<"nav"> {
 	 * - Hovering other nav zones (logo/right links) starts delayed close.
 	 */
 	private readonly handleMenuPointerOver = (event: Event): void => {
-		this.scheduleTopContrastUpdate();
-
 		if (!this.isDesktopViewport()) {
 			return;
 		}
@@ -839,8 +725,6 @@ class Navbar extends View<"nav"> {
 	 * focusing any trigger opens the same mega panel as pointer hover.
 	 */
 	private readonly handleMenuFocusIn = (event: FocusEvent): void => {
-		this.scheduleTopContrastUpdate();
-
 		if (!this.isDesktopViewport()) {
 			return;
 		}
@@ -929,8 +813,6 @@ class Navbar extends View<"nav"> {
 	 * Start delayed close when leaving nav with pointer.
 	 */
 	private readonly handleMenuPointerLeave = (): void => {
-		this.scheduleTopContrastUpdate();
-
 		if (!this.isDesktopViewport()) {
 			return;
 		}
@@ -944,8 +826,6 @@ class Navbar extends View<"nav"> {
 	 * close menus only after focus has truly left the whole nav.
 	 */
 	private readonly handleMenuFocusOut = (event: FocusEvent): void => {
-		this.scheduleTopContrastUpdate();
-
 		const relatedTarget = event.relatedTarget;
 		if (relatedTarget instanceof Node && this.element.contains(relatedTarget)) {
 			return;
@@ -965,7 +845,6 @@ class Navbar extends View<"nav"> {
 
 			this.setMobileMenuOpen(false);
 			this.clearActiveMenu();
-			this.scheduleTopContrastUpdate();
 		});
 	};
 
@@ -1041,14 +920,10 @@ class Navbar extends View<"nav"> {
 		if (menu) {
 			this.ensureMenuMediaLoaded(menu);
 			this.element.dataset.activeMenu = menu;
-			this.scheduleTopContrastUpdate();
-			this.stopTopContrastWarmup();
 			return;
 		}
 
 		delete this.element.dataset.activeMenu;
-		this.scheduleTopContrastUpdate();
-		this.startTopContrastWarmup();
 	}
 
 	private ensureMenuMediaLoaded(menu: NavMenuName): void {
@@ -1073,7 +948,10 @@ class Navbar extends View<"nav"> {
 				continue;
 			}
 
-			image.setAttribute("src", deferredSrc);
+			const safeSrc = sanitizeMediaUrl(deferredSrc);
+			if (safeSrc) {
+				image.src = safeSrc;
+			}
 			delete image.dataset.deferredSrc;
 		}
 
@@ -1086,10 +964,10 @@ class Navbar extends View<"nav"> {
 				continue;
 			}
 
-			node.style.setProperty(
-				"--media-card-bg-image",
-				`url("${deferredBackgroundSrc}")`,
-			);
+			const safeCssUrl = toSafeCssUrlValue(deferredBackgroundSrc);
+			if (safeCssUrl) {
+				node.style.setProperty("--media-card-bg-image", safeCssUrl);
+			}
 			delete node.dataset.deferredBgSrc;
 		}
 
@@ -1144,12 +1022,6 @@ class Navbar extends View<"nav"> {
 		}
 
 		this.syncMobileMenuUi();
-		this.scheduleTopContrastUpdate();
-		if (open) {
-			this.stopTopContrastWarmup();
-			return;
-		}
-		this.startTopContrastWarmup();
 	}
 
 	private syncMobileMenuUi(): void {
@@ -1168,122 +1040,6 @@ class Navbar extends View<"nav"> {
 		return window.innerWidth >= Navbar.MOBILE_BREAKPOINT_PX;
 	}
 
-	private scheduleTopContrastUpdate(): void {
-		if (this.topContrastRafId !== 0) {
-			return;
-		}
-
-		this.topContrastRafId = window.requestAnimationFrame(() => {
-			this.topContrastRafId = 0;
-			this.updateTopContrastMode();
-		});
-	}
-
-	private startTopContrastWarmup(): void {
-		this.stopTopContrastWarmup();
-		if (!this.shouldAutoAdjustTopContrast()) {
-			return;
-		}
-
-		this.topContrastWarmupStepsLeft = Navbar.TOP_CONTRAST_WARMUP_STEPS;
-		const runStep = (): void => {
-			this.scheduleTopContrastUpdate();
-			this.topContrastWarmupStepsLeft -= 1;
-
-			if (
-				this.topContrastWarmupStepsLeft <= 0 ||
-				!this.shouldAutoAdjustTopContrast()
-			) {
-				this.topContrastWarmupTimerId = 0;
-				this.topContrastWarmupStepsLeft = 0;
-				return;
-			}
-
-			this.topContrastWarmupTimerId = window.setTimeout(
-				runStep,
-				Navbar.TOP_CONTRAST_WARMUP_STEP_MS,
-			);
-		};
-
-		runStep();
-	}
-
-	private stopTopContrastWarmup(): void {
-		if (this.topContrastWarmupTimerId !== 0) {
-			window.clearTimeout(this.topContrastWarmupTimerId);
-		}
-
-		this.topContrastWarmupTimerId = 0;
-		this.topContrastWarmupStepsLeft = 0;
-	}
-
-	private updateTopContrastMode(): void {
-		if (!this.element.isConnected || !this.shouldAutoAdjustTopContrast()) {
-			this.setTopContrastMode(null);
-			return;
-		}
-
-		const forcedMode = this.getRouteTopContrastMode();
-		if (forcedMode) {
-			this.setTopContrastMode(forcedMode);
-			return;
-		}
-
-		const navInner = this.element.querySelector<HTMLElement>(".nav-inner");
-		if (!navInner) {
-			this.setTopContrastMode(null);
-			return;
-		}
-
-		const backdropLuminance = this.sampleBackdropLuminance(navInner);
-		if (backdropLuminance === null) {
-			this.setTopContrastMode(null);
-			return;
-		}
-
-		const whiteTextContrast = Navbar.calculateContrastRatio(
-			backdropLuminance,
-			1,
-		);
-		const blackTextContrast = Navbar.calculateContrastRatio(
-			backdropLuminance,
-			0,
-		);
-
-		// Default top-nav text is white. Keep default when it is already accessible
-		// and not worse than black.
-		if (
-			whiteTextContrast >= Navbar.MIN_TEXT_CONTRAST_RATIO &&
-			whiteTextContrast >= blackTextContrast
-		) {
-			this.setTopContrastMode(null);
-			return;
-		}
-
-		if (blackTextContrast > whiteTextContrast) {
-			this.setTopContrastMode("dark");
-			return;
-		}
-
-		// Rare case where both are low but white is still slightly better.
-		if (whiteTextContrast < Navbar.MIN_TEXT_CONTRAST_RATIO) {
-			this.setTopContrastMode("light");
-			return;
-		}
-
-		this.setTopContrastMode(null);
-	}
-
-	private shouldAutoAdjustTopContrast(): boolean {
-		return (
-			!this.isScrolled &&
-			!this.isMobileMenuOpen &&
-			this.activeMenu === null &&
-			!this.element.matches(":hover") &&
-			!this.element.matches(":focus-within")
-		);
-	}
-
 	private isBuilderRoute(): boolean {
 		return (
 			this.currentPath.startsWith("/dusk/build") ||
@@ -1291,457 +1047,6 @@ class Navbar extends View<"nav"> {
 			this.currentPath.startsWith("/dawn/build") ||
 			this.currentPath.startsWith("/dawn/buy")
 		);
-	}
-
-	private isGearsRoute(): boolean {
-		return (
-			this.currentPath === "/gears" || this.currentPath.startsWith("/gears/")
-		);
-	}
-
-	private getRouteTopContrastMode(): NavTopContrastMode | null {
-		if (this.isBuilderRoute()) {
-			return "light";
-		}
-		if (this.isGearsRoute()) {
-			return "light";
-		}
-
-		return null;
-	}
-
-	private setTopContrastMode(mode: NavTopContrastMode | null): void {
-		if (!mode) {
-			delete this.element.dataset.topContrastMode;
-			this.applyTopContrastInlinePresentation(null);
-			return;
-		}
-
-		this.element.dataset.topContrastMode = mode;
-		this.applyTopContrastInlinePresentation(mode);
-	}
-
-	private applyTopContrastInlinePresentation(
-		mode: NavTopContrastMode | null,
-	): void {
-		const navButtons = this.element.querySelectorAll<HTMLElement>(
-			".nav-menu-trigger, .nav-link, .nav-mobile-link, .nav-mobile-top-sign-in",
-		);
-		const logo =
-			this.element.querySelector<HTMLImageElement>(".nav-logo-image");
-		const shouldPreserveButtonStyles = (button: HTMLElement): boolean =>
-			button.classList.contains("ui-button--cta") ||
-			button.classList.contains("is-active-page");
-
-		for (const button of navButtons) {
-			button.style.removeProperty("color");
-			button.style.removeProperty("outline-color");
-			if (button.classList.contains("ui-button--outline")) {
-				button.style.removeProperty("border-color");
-			}
-			button
-				.querySelector<HTMLElement>(".ui-button__label")
-				?.style.removeProperty("color");
-		}
-		if (logo) {
-			logo.style.removeProperty("filter");
-		}
-
-		if (!this.shouldAutoAdjustTopContrast() || mode === null) {
-			return;
-		}
-
-		if (mode === "light") {
-			for (const button of navButtons) {
-				if (shouldPreserveButtonStyles(button)) {
-					continue;
-				}
-				button.style.color = "rgb(255 255 255)";
-				button
-					.querySelector<HTMLElement>(".ui-button__label")
-					?.style.setProperty("color", "rgb(255 255 255)");
-			}
-
-			if (logo) {
-				logo.style.filter = "none";
-			}
-			return;
-		}
-
-		for (const button of navButtons) {
-			if (shouldPreserveButtonStyles(button)) {
-				continue;
-			}
-			button.style.color = "rgb(0 0 0)";
-			button
-				.querySelector<HTMLElement>(".ui-button__label")
-				?.style.setProperty("color", "rgb(0 0 0)");
-		}
-
-		if (logo) {
-			logo.style.filter = "brightness(0) saturate(100%)";
-		}
-	}
-
-	private sampleBackdropLuminance(navInner: HTMLElement): number | null {
-		const viewportWidth = window.innerWidth;
-		const viewportHeight = window.innerHeight;
-		if (viewportWidth <= 0 || viewportHeight <= 0) {
-			return null;
-		}
-
-		const rect = navInner.getBoundingClientRect();
-		if (rect.width <= 0 || rect.height <= 0) {
-			return null;
-		}
-
-		const sampleYOffset = Math.max(
-			Navbar.TOP_CONTRAST_MIN_SAMPLE_Y_PX,
-			rect.height * Navbar.TOP_CONTRAST_SAMPLE_Y_RATIO,
-		);
-		const sampleY = Math.min(
-			Math.max(rect.top + sampleYOffset, 0),
-			viewportHeight - 1,
-		);
-
-		const previousPointerEvents = this.element.style.pointerEvents;
-		this.element.style.pointerEvents = "none";
-
-		try {
-			const samples: number[] = [];
-			for (const ratio of Navbar.TOP_CONTRAST_SAMPLE_X_RATIOS) {
-				const sampleX = Math.min(
-					Math.max(rect.left + rect.width * ratio, 0),
-					viewportWidth - 1,
-				);
-				const luminance = this.sampleLuminanceAtViewportPoint(sampleX, sampleY);
-				if (luminance === null) {
-					continue;
-				}
-
-				samples.push(luminance);
-			}
-
-			if (samples.length === 0) {
-				return null;
-			}
-
-			return samples.reduce((sum, value) => sum + value, 0) / samples.length;
-		} finally {
-			this.element.style.pointerEvents = previousPointerEvents;
-		}
-	}
-
-	private sampleLuminanceAtViewportPoint(
-		viewportX: number,
-		viewportY: number,
-	): number | null {
-		const stack =
-			typeof document.elementsFromPoint === "function"
-				? document.elementsFromPoint(viewportX, viewportY)
-				: (() => {
-						const target = document.elementFromPoint(viewportX, viewportY);
-						return target ? [target] : [];
-					})();
-
-		for (const element of stack) {
-			if (this.element.contains(element)) {
-				continue;
-			}
-
-			const mediaLuminance = this.sampleMediaElementLuminance(
-				element,
-				viewportX,
-				viewportY,
-			);
-			if (mediaLuminance !== null) {
-				return mediaLuminance;
-			}
-
-			const style = window.getComputedStyle(element);
-			if (
-				style.visibility === "hidden" ||
-				Number.parseFloat(style.opacity || "1") <= 0
-			) {
-				continue;
-			}
-
-			const backgroundColor = Navbar.parseCssRgbColor(style.backgroundColor);
-			if (!backgroundColor || backgroundColor.alpha <= 0) {
-				continue;
-			}
-
-			return Navbar.toRelativeLuminance(
-				backgroundColor.red,
-				backgroundColor.green,
-				backgroundColor.blue,
-			);
-		}
-
-		const sectionLuminance = this.readSectionSurfaceLuminanceAtPoint(
-			viewportX,
-			viewportY,
-		);
-		if (sectionLuminance !== null) {
-			return sectionLuminance;
-		}
-
-		// If we cannot read reliable backdrop color (e.g. pending/broken media),
-		// prefer a light fallback so top-nav text switches to black for legibility.
-		return Navbar.UNKNOWN_BACKDROP_LUMINANCE;
-	}
-
-	private sampleMediaElementLuminance(
-		element: Element,
-		viewportX: number,
-		viewportY: number,
-	): number | null {
-		const descendantMedia =
-			element.querySelector?.<Element>("img, video, canvas");
-		if (descendantMedia) {
-			const descendantLuminance = this.sampleMediaElementLuminance(
-				descendantMedia,
-				viewportX,
-				viewportY,
-			);
-			if (descendantLuminance !== null) {
-				return descendantLuminance;
-			}
-		}
-
-		if (element instanceof HTMLImageElement) {
-			if (!element.complete) {
-				return Navbar.UNKNOWN_BACKDROP_LUMINANCE;
-			}
-			if (element.naturalWidth <= 0 || element.naturalHeight <= 0) {
-				return Navbar.UNKNOWN_BACKDROP_LUMINANCE;
-			}
-
-			const rect = element.getBoundingClientRect();
-			if (rect.width <= 0 || rect.height <= 0) {
-				return null;
-			}
-
-			const sourceX = Math.min(
-				Math.max(
-					Math.floor(
-						((viewportX - rect.left) / rect.width) * element.naturalWidth,
-					),
-					0,
-				),
-				element.naturalWidth - 1,
-			);
-			const sourceY = Math.min(
-				Math.max(
-					Math.floor(
-						((viewportY - rect.top) / rect.height) * element.naturalHeight,
-					),
-					0,
-				),
-				element.naturalHeight - 1,
-			);
-			return this.sampleImageSourcePixelLuminance(element, sourceX, sourceY);
-		}
-
-		if (element instanceof HTMLVideoElement) {
-			if (
-				element.readyState < HTMLMediaElement.HAVE_CURRENT_DATA ||
-				element.videoWidth <= 0 ||
-				element.videoHeight <= 0
-			) {
-				return Navbar.UNKNOWN_BACKDROP_LUMINANCE;
-			}
-
-			const rect = element.getBoundingClientRect();
-			if (rect.width <= 0 || rect.height <= 0) {
-				return null;
-			}
-
-			const sourceX = Math.min(
-				Math.max(
-					Math.floor(
-						((viewportX - rect.left) / rect.width) * element.videoWidth,
-					),
-					0,
-				),
-				element.videoWidth - 1,
-			);
-			const sourceY = Math.min(
-				Math.max(
-					Math.floor(
-						((viewportY - rect.top) / rect.height) * element.videoHeight,
-					),
-					0,
-				),
-				element.videoHeight - 1,
-			);
-			return this.sampleImageSourcePixelLuminance(element, sourceX, sourceY);
-		}
-
-		if (element instanceof HTMLCanvasElement) {
-			try {
-				const context = element.getContext("2d");
-				if (!context) {
-					return null;
-				}
-
-				const rect = element.getBoundingClientRect();
-				if (rect.width <= 0 || rect.height <= 0) {
-					return null;
-				}
-
-				const sourceX = Math.min(
-					Math.max(
-						Math.floor(((viewportX - rect.left) / rect.width) * element.width),
-						0,
-					),
-					Math.max(0, element.width - 1),
-				);
-				const sourceY = Math.min(
-					Math.max(
-						Math.floor(((viewportY - rect.top) / rect.height) * element.height),
-						0,
-					),
-					Math.max(0, element.height - 1),
-				);
-				const pixel = context.getImageData(sourceX, sourceY, 1, 1).data;
-				if (pixel[3] === 0) {
-					return null;
-				}
-
-				return Navbar.toRelativeLuminance(pixel[0], pixel[1], pixel[2]);
-			} catch {
-				return null;
-			}
-		}
-
-		return null;
-	}
-
-	private readSectionSurfaceLuminanceAtPoint(
-		viewportX: number,
-		viewportY: number,
-	): number | null {
-		const target = document.elementFromPoint(viewportX, viewportY);
-		if (!(target instanceof Element)) {
-			return null;
-		}
-
-		const section = target.closest<HTMLElement>(".page-section");
-		if (!section) {
-			return null;
-		}
-
-		const color = Navbar.parseCssRgbColor(
-			window.getComputedStyle(section).backgroundColor,
-		);
-		if (!color || color.alpha <= 0) {
-			return null;
-		}
-
-		return Navbar.toRelativeLuminance(color.red, color.green, color.blue);
-	}
-
-	private sampleImageSourcePixelLuminance(
-		source: CanvasImageSource,
-		sourceX: number,
-		sourceY: number,
-	): number | null {
-		const context = this.contrastSampleContext;
-		if (!context) {
-			return null;
-		}
-
-		this.contrastSampleCanvas.width = 1;
-		this.contrastSampleCanvas.height = 1;
-
-		try {
-			context.clearRect(0, 0, 1, 1);
-			context.drawImage(source, sourceX, sourceY, 1, 1, 0, 0, 1, 1);
-			const pixel = context.getImageData(0, 0, 1, 1).data;
-			if (pixel[3] === 0) {
-				return null;
-			}
-
-			return Navbar.toRelativeLuminance(pixel[0], pixel[1], pixel[2]);
-		} catch {
-			return null;
-		}
-	}
-
-	private static parseCssRgbColor(
-		value: string,
-	): { red: number; green: number; blue: number; alpha: number } | null {
-		const normalized = value.trim().toLowerCase();
-		if (!normalized.startsWith("rgb")) {
-			return null;
-		}
-
-		const channels = normalized.match(/[\d.]+%?/g);
-		if (!channels || channels.length < 3) {
-			return null;
-		}
-
-		const red = Navbar.toByte(channels[0]);
-		const green = Navbar.toByte(channels[1]);
-		const blue = Navbar.toByte(channels[2]);
-		const alpha = channels[3] ? Navbar.toAlpha(channels[3]) : 1;
-
-		if (
-			Number.isNaN(red) ||
-			Number.isNaN(green) ||
-			Number.isNaN(blue) ||
-			Number.isNaN(alpha)
-		) {
-			return null;
-		}
-
-		return { red, green, blue, alpha };
-	}
-
-	private static toByte(token: string): number {
-		if (token.endsWith("%")) {
-			const value = Number.parseFloat(token);
-			return Math.round(Math.min(100, Math.max(0, value)) * 2.55);
-		}
-
-		const value = Number.parseFloat(token);
-		return Math.round(Math.min(255, Math.max(0, value)));
-	}
-
-	private static toAlpha(token: string): number {
-		if (token.endsWith("%")) {
-			const value = Number.parseFloat(token);
-			return Math.min(100, Math.max(0, value)) / 100;
-		}
-
-		const value = Number.parseFloat(token);
-		return Math.min(1, Math.max(0, value));
-	}
-
-	private static toRelativeLuminance(
-		red: number,
-		green: number,
-		blue: number,
-	): number {
-		const r = Navbar.srgbToLinear(red);
-		const g = Navbar.srgbToLinear(green);
-		const b = Navbar.srgbToLinear(blue);
-		return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-	}
-
-	private static srgbToLinear(channel: number): number {
-		const normalized = channel / 255;
-		if (normalized <= 0.04045) {
-			return normalized / 12.92;
-		}
-		return ((normalized + 0.055) / 1.055) ** 2.4;
-	}
-
-	private static calculateContrastRatio(first: number, second: number): number {
-		const lighter = Math.max(first, second);
-		const darker = Math.min(first, second);
-		return (lighter + 0.05) / (darker + 0.05);
 	}
 
 	private syncActivePageLinks(): void {

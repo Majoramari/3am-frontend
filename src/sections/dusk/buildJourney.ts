@@ -34,21 +34,40 @@ export class DuskLineupSection extends View<"section"> {
 					<h2 class="dusk-lineup__title">${this.title}</h2>
 				</header>
 				<div class="dusk-lineup__grid">
-					${this.models.map(
-						(model) => this.tpl`
+					${this.models.map((model) => {
+						const [drivetrainLabel, accelerationLabel = "—"] = model.performanceLabel
+							.split("·")
+							.map((part) => part.trim());
+						const comparisonSpecs = model.specs ?? [
+							{ label: "Range", value: model.rangeLabel },
+							{ label: "Drivetrain", value: drivetrainLabel },
+							{ label: "Acceleration", value: accelerationLabel },
+						];
+
+						return this.tpl`
 							<article class="dusk-lineup__card">
-								<header class="dusk-lineup__card-head">
-									<h3>${model.name}</h3>
-									<p>${model.fromLabel}</p>
-								</header>
+								<div class="dusk-lineup__card-main">
+									<header class="dusk-lineup__card-head">
+										<h3>${model.name}</h3>
+										<p>${model.fromLabel}</p>
+									</header>
+									<img src="${model.image}" alt="${model.name}" loading="lazy" />
+									<p class="dusk-lineup__description">${model.description}</p>
+									<dl class="dusk-lineup__spec-list">
+										${comparisonSpecs.map(
+											(spec) => this.tpl`
+												<div>
+													<dt>${spec.label}</dt>
+													<dd>${spec.value}</dd>
+												</div>
+											`,
+										)}
+									</dl>
+								</div>
 								<a class="dusk-lineup__build-button" href="${this.buildHref}">Build</a>
-								<img src="${model.image}" alt="${model.name}" loading="lazy" />
-								<p class="dusk-lineup__description">${model.description}</p>
-								<p class="dusk-lineup__meta">${model.rangeLabel}</p>
-								<p class="dusk-lineup__meta">${model.performanceLabel}</p>
 							</article>
-						`,
-					)}
+						`;
+					})}
 				</div>
 			</div>
 		`;

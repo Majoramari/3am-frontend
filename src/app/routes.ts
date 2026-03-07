@@ -18,6 +18,11 @@ const createDawnBuildPage = async () => {
 	return new VehicleBuildPage(DAWN_BUILD_CONFIG);
 };
 
+const createGearsPage = async () => {
+	const { GearsPage } = await import("@pages/gears");
+	return new GearsPage();
+};
+
 export const routes: RouteMap = {
 	"/": {
 		title: "Home",
@@ -110,16 +115,17 @@ export const routes: RouteMap = {
 	},
 	"/gears": {
 		title: "Gears",
-		create: async () => {
-			const { GearsPage } = await import("@pages/gears");
-			return new GearsPage();
-		},
+		create: createGearsPage,
 	},
 	"/gears/product/:id": {
 		title: "Product",
 		create: async () => {
 			const { ProductPage } = await import("@pages/product");
-			return new ProductPage();
+			// Extract ID from current path
+			const path = window.location.pathname;
+			const idMatch = path.match(/\/gears\/product\/(\d+)/);
+			const productId = idMatch ? parseInt(idMatch[1], 10) : 0;
+			return new ProductPage(productId);
 		},
 	},
 	"/checkout": {

@@ -2,6 +2,7 @@ import {
 	hydrateDeferredImage,
 	hydrateDeferredSource,
 } from "@lib/lazyMediaHydration";
+import { sanitizeMediaUrl, toSafeCssUrlValue } from "@lib/safeUrl";
 
 const DEFAULT_ROOT_MARGIN = "300px 0px";
 
@@ -56,11 +57,18 @@ const applyDeferredBackground = (element: Element): void => {
 		return;
 	}
 
+	const safeCssUrl = toSafeCssUrlValue(lazyBackground);
+	if (!safeCssUrl) {
+		delete element.dataset.lazyBgSrc;
+		delete element.dataset.lazyBgCssVar;
+		return;
+	}
+
 	const cssVarName = element.dataset.lazyBgCssVar;
 	if (cssVarName) {
-		element.style.setProperty(cssVarName, `url("${lazyBackground}")`);
+		element.style.setProperty(cssVarName, safeCssUrl);
 	} else {
-		element.style.backgroundImage = `url("${lazyBackground}")`;
+		element.style.backgroundImage = safeCssUrl;
 	}
 
 	delete element.dataset.lazyBgSrc;
@@ -77,15 +85,21 @@ const applyDeferredVideoAttributes = (element: Element): void => {
 
 	const lazyPoster = video.dataset.lazyPoster;
 	if (lazyPoster) {
-		video.poster = lazyPoster;
+		const safePoster = sanitizeMediaUrl(lazyPoster);
+		if (safePoster) {
+			video.poster = safePoster;
+		}
 		delete video.dataset.lazyPoster;
 	}
 
 	const lazySrc = video.dataset.lazySrc;
 	if (lazySrc) {
-		video.src = lazySrc;
+		const safeSrc = sanitizeMediaUrl(lazySrc);
+		if (safeSrc) {
+			video.src = safeSrc;
+			shouldReload = true;
+		}
 		delete video.dataset.lazySrc;
-		shouldReload = true;
 	}
 
 	for (const source of video.querySelectorAll("source")) {

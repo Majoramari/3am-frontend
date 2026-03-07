@@ -67,18 +67,6 @@ const resolveRoute = (path: string, routes: RouteMap): ResolvedRoute | null => {
 	return null;
 };
 
-// Singleton router instance for use across the app
-let globalRouter: Router | null = null;
-
-export const getRouter = (): Router => {
-	if (!globalRouter) {
-		throw new Error(
-			"Router not initialized. Make sure createRouter is called first.",
-		);
-	}
-	return globalRouter;
-};
-
 export const createRouter = (
 	outlet: HTMLElement,
 	routes: RouteMap,
@@ -155,9 +143,7 @@ export const createRouter = (
 		void render();
 	};
 
-	const router: Router = { start, stop, navigate };
-	globalRouter = router;
-	return router;
+	return { start, stop, navigate };
 };
 
 // Singleton router instance for use across the app
@@ -165,4 +151,11 @@ export let router: ReturnType<typeof createRouter> | null = null;
 
 export const setRouter = (instance: ReturnType<typeof createRouter>): void => {
 	router = instance;
+};
+
+export const getRouter = (): ReturnType<typeof createRouter> => {
+	if (!router) {
+		throw new Error("Router not initialized. Call setRouter first.");
+	}
+	return router;
 };

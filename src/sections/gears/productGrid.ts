@@ -1,9 +1,5 @@
-import { cartStore } from "@app/cart/cartStore";
 import { Button } from "@components/button";
 import { type Product, productsApi } from "@lib/api";
-import { authStore } from "@lib/authStore";
-import { getRouter } from "@lib/router";
-import { emitToast } from "@lib/toastBus";
 import { View } from "@lib/view";
 
 type SortOption = "featured" | "price-low" | "price-high";
@@ -27,6 +23,8 @@ const SORT_OPTIONS = new Set<SortOption>([
 
 const PLACEHOLDER_IMAGE = "/assets/shared/placeholder.png";
 const LOADING_SKELETON_CARD_COUNT = 8;
+const CARD_EXCERPT_FALLBACK =
+	"Built for clean fitment, daily reliability, and confident every-day use.";
 
 const isValidCategoryId = (value: unknown): value is number =>
 	typeof value === "number" && Number.isInteger(value) && value > 0;
@@ -62,6 +60,20 @@ const resolveImageSource = (imageUrl: string | null | undefined): string => {
 	}
 	return `/${normalized.replace(/^\/+/, "")}`;
 };
+
+const toExcerpt = (value: string): string => {
+	const normalized = value.trim().replace(/\s+/g, " ");
+	if (!normalized) {
+		return CARD_EXCERPT_FALLBACK;
+	}
+	if (normalized.length <= 110) {
+		return normalized;
+	}
+	return `${normalized.slice(0, 107).trimEnd()}...`;
+};
+
+const formatPrice = (price: number): string =>
+	`$${price.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
 
 export class GearsProductGridSection extends View<"section"> {
 	private products: ReadonlyArray<ProductCardModel> = [];
@@ -278,7 +290,6 @@ export class GearsProductGridSection extends View<"section"> {
 						<div class="gears-product-card__skeleton-line gears-product-card__skeleton-line--short gears-skeleton-block"></div>
 						<div class="gears-product-card__skeleton-line gears-product-card__skeleton-line--short gears-skeleton-block"></div>
 						<div class="gears-product-card__skeleton-price gears-skeleton-block"></div>
-						<div class="gears-product-card__skeleton-button gears-skeleton-block"></div>
 					</div>
 				</article>
 			`;
@@ -300,26 +311,26 @@ export class GearsProductGridSection extends View<"section"> {
 				</a>
 
 				<div class="gears-product-card__content">
-					<div class="gears-product-card__category">${product.categoryName}</div>
+					<div class="gears-product-card__top">
+						<div class="gears-product-card__category">${product.categoryName}</div>
+						<span class="gears-product-card__stock ${product.inStock ? "is-in" : "is-out"}">
+							${product.inStock ? "In stock" : "Out of stock"}
+						</span>
+					</div>
+
 					<h3 class="gears-product-card__name">
 						<a href="/gears/product/${product.id}">${product.name}</a>
 					</h3>
 
-					<div class="gears-product-card__meta">${product.brand || "3AM"}</div>
+					<p class="gears-product-card__excerpt">
+						${toExcerpt(product.description)}
+					</p>
 
-					<div class="gears-product-card__price">
-						<span class="gears-product-card__price-current">$${product.price.toLocaleString()}</span>
-					</div>
-
-					<div class="gears-product-card__actions">
-						${new Button({
-							as: "button",
-							label: product.inStock ? "Add to Cart" : "Out of Stock",
-							variant: "solid",
-							type: "button",
-							className: "gears-product-card__add-to-cart",
-							attrs: { disabled: !product.inStock },
-						})}
+					<div class="gears-product-card__footer">
+						<span class="gears-product-card__price-current">${formatPrice(product.price)}</span>
+						<a href="/gears/product/${product.id}" class="gears-product-card__view-link">
+							View Details
+						</a>
 					</div>
 				</div>
 			</article>
@@ -366,12 +377,6 @@ export class GearsProductGridSection extends View<"section"> {
 			this.cleanup.on(retryButton, "click", this.handleRetry);
 		}
 
-		const addToCartButtons = this.element.querySelectorAll<HTMLButtonElement>(
-			".gears-product-card__add-to-cart",
-		);
-		for (const btn of addToCartButtons) {
-			this.cleanup.on(btn, "click", this.handleAddToCart);
-		}
 	}
 
 	private readonly handleRetry = (): void => {
@@ -433,10 +438,6 @@ export class GearsProductGridSection extends View<"section"> {
 		this.currentPage += 1;
 		this.rerender();
 		this.bindEvents();
-	};
-
-	private readonly handleAddToCart = (event: Event): void => {
-		void this.addToCartFromEvent(event);
 	};
 
 	private async loadCategoryOptions(): Promise<void> {
@@ -517,44 +518,6 @@ export class GearsProductGridSection extends View<"section"> {
 				this.bindEvents();
 			}
 		}
-	}
-
-	private async addToCartFromEvent(event: Event): Promise<void> {
-		if (!authStore.getState().isAuthenticated) {
-			emitToast({
-				level: "warning",
-				title: "Sign in required",
-				message: "Please sign in to add items to your cart.",
-			});
-			getRouter().navigate("/signin");
-			return;
-		}
-
-		const button = event.currentTarget as HTMLButtonElement;
-		const card = button.closest<HTMLElement>(".gears-product-card");
-		const productId = Number(card?.dataset.productId ?? Number.NaN);
-		if (!Number.isFinite(productId)) {
-			return;
-		}
-
-		const product = this.products.find((item) => item.id === productId);
-		if (!product) {
-			return;
-		}
-
-		button.disabled = true;
-		await cartStore.addToCart(product, 1);
-
-		const { error } = cartStore.getState();
-		button.disabled = !product.inStock;
-
-		if (error) {
-			return;
-		}
-		button.classList.add("is-added");
-		window.setTimeout(() => {
-			button.classList.remove("is-added");
-		}, 1000);
 	}
 
 	private applyFiltersAndSort(): void {

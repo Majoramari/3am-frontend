@@ -1,5 +1,4 @@
 import { View } from "@lib/view";
-import { GearsBannersSection } from "@sections/gears/banners";
 import { GearsHeroSection } from "@sections/gears/hero";
 import { GearsProductGridSection } from "@sections/gears/productGrid";
 
@@ -12,7 +11,6 @@ export class GearsPage extends View<"section"> {
 		return this.tpl`
 			${new GearsHeroSection()}
 			${new GearsProductGridSection()}
-			${new GearsBannersSection()}
 		`;
 	}
 }

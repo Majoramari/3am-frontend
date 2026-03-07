@@ -101,7 +101,7 @@
 		inset: 0;
 		z-index: 2;
 		transform: translate3d(0, 0, 0);
-		background: url("/assets/cars/0001.webp") center bottom / cover no-repeat;
+		background: transparent;
 	}
 
 	.showcase-car-canvas {

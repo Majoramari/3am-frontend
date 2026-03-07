@@ -331,31 +331,31 @@ export class CheckoutPage extends View<"section"> {
 
 					<section class="checkout-result-panel checkout-result-panel--actions">
 						<h2 class="checkout-result-panel__title">Next Step</h2>
-						<p class="checkout-result-panel__message">
-							${
-								isSuccess
-									? "Track this order in your profile and continue shopping."
-									: "You can retry checkout now or return to home."
-							}
-						</p>
-						<div class="checkout-result-page__actions">
-							${
-								isSuccess
-									? new Button({
-											as: "a",
-											href: "/profile",
-											label: "View Orders",
-											variant: "cta",
-											className: "checkout-result-page__action",
-										})
-									: new Button({
-											as: "a",
-											href: retryUrl,
-											label: "Try Checkout Again",
-											variant: "cta",
-											className: "checkout-result-page__action",
-										})
-							}
+							<p class="checkout-result-panel__message">
+								${
+									isSuccess
+										? "Your order is confirmed. Continue shopping."
+										: "You can retry checkout now or return to home."
+								}
+							</p>
+							<div class="checkout-result-page__actions">
+								${
+									isSuccess
+										? new Button({
+												as: "a",
+												href: "/gears",
+												label: "Back to Gears",
+												variant: "cta",
+												className: "checkout-result-page__action",
+											})
+										: new Button({
+												as: "a",
+												href: retryUrl,
+												label: "Try Checkout Again",
+												variant: "cta",
+												className: "checkout-result-page__action",
+											})
+								}
 							${new Button({
 								as: "a",
 								href: isSuccess ? "/gears" : "/",
@@ -396,14 +396,14 @@ export class CheckoutPage extends View<"section"> {
 				profile?.orders.find((candidate) => candidate.id === orderId) ?? null;
 			if (!matchedOrder) {
 				this.paymentOrderError =
-					"We could not load full order details yet. Check your profile shortly.";
+					"We could not load full order details yet. Please check your orders shortly.";
 				return;
 			}
 
 			this.paymentOrder = matchedOrder;
 		} catch {
 			this.paymentOrderError =
-				"Unable to load order details right now. You can still view them in your profile.";
+				"Unable to load order details right now. Please check your orders shortly.";
 		} finally {
 			this.isLoadingPaymentOrder = false;
 			this.rerender();

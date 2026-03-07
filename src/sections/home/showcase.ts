@@ -4,16 +4,22 @@ import { setupHomeShowcase } from "./showcaseBehavior";
 type ShowcaseVehicle = {
 	model: string;
 	themeClassName: string;
+	framePath: string;
+	frameCount: number;
 };
 
 const vehicles: ShowcaseVehicle[] = [
 	{
 		model: "DAWN",
 		themeClassName: "showcase-panel--dawn",
+		framePath: "/assets/cars/dawn/showcase",
+		frameCount: 50,
 	},
 	{
 		model: "DUSK",
 		themeClassName: "showcase-panel--dusk",
+		framePath: "/assets/cars/dusk/showcase",
+		frameCount: 50,
 	},
 ];
 
@@ -68,6 +74,8 @@ export class HomeShowcaseSection extends View<"section"> {
 								class="showcase-car-canvas"
 								data-showcase-car-canvas
 								data-vehicle-index="${index}"
+								data-showcase-frame-path="${vehicle.framePath}"
+								data-showcase-frame-count="${vehicle.frameCount}"
 							></canvas>
 						</div>
 					</div>

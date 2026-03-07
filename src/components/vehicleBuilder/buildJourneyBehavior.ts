@@ -49,6 +49,13 @@ const toUsdWhole = (value: number): string => usdWholeFormatter.format(value);
 const toLeaseEstimate = (totalPrice: number): string =>
 	`${toUsdWhole(Math.round(totalPrice / 96))}/mo`;
 
+const KM_PER_MILE = 1.609344;
+const KPH_100_IN_MPH = 62.13712;
+const toRangeKilometers = (miles: number): number =>
+	Math.round(miles * KM_PER_MILE);
+const toZeroToHundredTime = (zeroToSixtySec: number): string =>
+	`${(zeroToSixtySec * (KPH_100_IN_MPH / 60)).toFixed(1)} sec`;
+
 const getNodeList = (root: ParentNode, selector: string): HTMLElement[] =>
 	Array.from(root.querySelectorAll<HTMLElement>(selector));
 
@@ -443,6 +450,32 @@ export const setupVehicleBuildJourney = (
 		}
 	};
 
+	const getMaxVisibleBuildFocusIndex = (): number => {
+		if (
+			state.stepId !== "build" ||
+			!panelScrollHost ||
+			buildFocusSections.length === 0
+		) {
+			return -1;
+		}
+
+		const panelRect = panelScrollHost.getBoundingClientRect();
+		let maxVisibleIndex = -1;
+
+		for (let index = 0; index < buildFocusSections.length; index += 1) {
+			const section = buildFocusSections[index];
+			const rect = section.getBoundingClientRect();
+			const visiblePixels =
+				Math.min(rect.bottom, panelRect.bottom) -
+				Math.max(rect.top, panelRect.top);
+			if (visiblePixels > 0) {
+				maxVisibleIndex = index;
+			}
+		}
+
+		return maxVisibleIndex;
+	};
+
 	const syncBuildFocusSections = (): void => {
 		for (let index = 0; index < buildFocusSections.length; index += 1) {
 			const section = buildFocusSections[index];
@@ -710,8 +743,8 @@ export const setupVehicleBuildJourney = (
 
 		setText(stepTitleNodes, config.steps[getStepIndex(state.stepId)].title);
 		setText(modelNodes, config.model);
-		setText(rangeNodes, `${wheel.rangeMiles} mi range (EPA est.)`);
-		setText(accelNodes, `0-60 in ${wheel.zeroToSixtySec.toFixed(1)} sec`);
+		setText(rangeNodes, `${toRangeKilometers(wheel.rangeMiles)} km range (est.)`);
+		setText(accelNodes, `0-100 in ${toZeroToHundredTime(wheel.zeroToSixtySec)}`);
 		setText(paintNameNodes, paint.label);
 		setText(wheelNameNodes, wheel.label);
 		setText(wheelDescriptionNodes, wheel.description);
@@ -729,7 +762,7 @@ export const setupVehicleBuildJourney = (
 			interiorPriceNodes,
 			interior.price > 0 ? toUsdWhole(interior.price) : "Included",
 		);
-		setText(rangeMilesNodes, `${wheel.rangeMiles} mi`);
+		setText(rangeMilesNodes, `${toRangeKilometers(wheel.rangeMiles)} km`);
 		setText(
 			upgradesPriceNodes,
 			upgradesSubtotal > 0 ? toUsdWhole(upgradesSubtotal) : "Included",
@@ -841,7 +874,11 @@ export const setupVehicleBuildJourney = (
 				target.dataset.vehicleBuildGalleryIndex ?? "",
 				10,
 			);
-			if (!Number.isFinite(index) || index < 0 || index >= galleryItems.length) {
+			if (
+				!Number.isFinite(index) ||
+				index < 0 ||
+				index >= galleryItems.length
+			) {
 				return;
 			}
 
@@ -856,10 +893,15 @@ export const setupVehicleBuildJourney = (
 			"scroll",
 			() => {
 				const focusArea = getVisibleFocusArea();
-				if (focusArea === activeFocusArea) {
+				const maxVisibleIndex = getMaxVisibleBuildFocusIndex();
+				const shouldRevealMore = maxVisibleIndex > maxRevealedBuildFocusIndex;
+				if (focusArea === activeFocusArea && !shouldRevealMore) {
 					return;
 				}
 				activeFocusArea = focusArea;
+				if (shouldRevealMore) {
+					maxRevealedBuildFocusIndex = maxVisibleIndex;
+				}
 				render();
 			},
 			{ passive: true },

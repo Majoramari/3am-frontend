@@ -1,21 +1,22 @@
 import type { CleanupBag } from "@lib/cleanup";
 import { clamp } from "@lib/math";
 
-const CAR_SEQUENCE_FRAME_COUNT = 20;
+const DEFAULT_SHOWCASE_FRAME_COUNT = 20;
 const MODEL_LEFT_PARALLAX_RATIO = 0.18;
 const APPROACH_SCROLL_VIEWPORT_RATIO = 0.34;
-const APPROACH_START_TRIGGER_RATIO = 0.62;
+const APPROACH_START_TRIGGER_RATIO = 0.82;
 const MODEL_APPROACH_DOWN_VIEWPORT_RATIO = 0.24;
 const HORIZONTAL_SCROLL_DURATION_MULTIPLIER = 1.85;
 const MAX_CANVAS_DPR = 1.5;
 const FRAME_PRELOAD_INITIAL_DELAY_MS = 260;
 const FRAME_PRELOAD_INTERVAL_MS = 140;
-const GSAP_HYDRATE_ROOT_MARGIN = "320px 0px";
+const GSAP_HYDRATE_ROOT_MARGIN = "900px 0px";
 
 type CarCanvasHandle = {
 	node: HTMLCanvasElement;
 	ctx: CanvasRenderingContext2D;
 	vehicleIndex: number;
+	sequence: FrameSequenceHandle;
 	lastFrame: number;
 };
 
@@ -27,6 +28,15 @@ type ShowcaseModelHandle = {
 type ShowcaseAnimationState = {
 	approachProgress: number;
 	horizontalProgress: number;
+};
+
+type FrameSequenceHandle = {
+	basePath: string;
+	frameCount: number;
+	frames: Array<HTMLImageElement | null>;
+	frameRequested: boolean[];
+	preloadCursor: number;
+	preloadTimer: number;
 };
 
 type ScrollTriggerUpdate = {
@@ -48,13 +58,27 @@ type ScrollTriggerHandle = {
 	progress: number;
 };
 
-const frameUrlAt = (frameIndex: number): string =>
-	`/assets/cars/${String(frameIndex + 1).padStart(4, "0")}.webp`;
+const normalizeFramePath = (value: string): string =>
+	value.replace(/\/+$/, "");
+
+const frameUrlAt = (
+	sequence: FrameSequenceHandle,
+	frameIndex: number,
+): string =>
+	`${sequence.basePath}/${String(frameIndex + 1).padStart(4, "0")}.webp`;
 
 const parseVehicleIndex = (value: string | undefined): number | null => {
 	const parsed = Number.parseInt(value ?? "", 10);
 	if (Number.isNaN(parsed) || parsed < 0) {
 		return null;
+	}
+	return parsed;
+};
+
+const parseFrameCount = (value: string | undefined): number => {
+	const parsed = Number.parseInt(value ?? "", 10);
+	if (Number.isNaN(parsed) || parsed <= 0) {
+		return DEFAULT_SHOWCASE_FRAME_COUNT;
 	}
 	return parsed;
 };
@@ -148,10 +172,36 @@ export const setupHomeShowcase = (
 	}
 
 	const carCanvases: CarCanvasHandle[] = [];
+	const sequences = new Map<string, FrameSequenceHandle>();
+	const getSequence = (
+		framePath: string,
+		frameCount: number,
+	): FrameSequenceHandle => {
+		const normalizedPath = normalizeFramePath(framePath);
+		const key = `${normalizedPath}|${frameCount}`;
+		const existing = sequences.get(key);
+		if (existing) {
+			return existing;
+		}
+
+		const next: FrameSequenceHandle = {
+			basePath: normalizedPath,
+			frameCount,
+			frames: Array.from({ length: frameCount }, () => null),
+			frameRequested: Array.from({ length: frameCount }, () => false),
+			preloadCursor: 0,
+			preloadTimer: 0,
+		};
+		sequences.set(key, next);
+		return next;
+	};
 
 	for (const node of carCanvasNodes) {
 		const ctx = node.getContext("2d");
 		const vehicleIndex = parseVehicleIndex(node.dataset.vehicleIndex);
+		const framePath =
+			node.dataset.showcaseFramePath?.trim() || "/assets/cars/dawn/showcase";
+		const frameCount = parseFrameCount(node.dataset.showcaseFrameCount);
 
 		if (!ctx || vehicleIndex === null) {
 			continue;
@@ -164,6 +214,7 @@ export const setupHomeShowcase = (
 			node,
 			ctx,
 			vehicleIndex,
+			sequence: getSequence(framePath, frameCount),
 			lastFrame: -1,
 		});
 	}
@@ -188,19 +239,8 @@ export const setupHomeShowcase = (
 	const prefersReducedMotion = (): boolean =>
 		reducedMotionQuery?.matches ?? false;
 
-	const frames: Array<HTMLImageElement | null> = Array.from(
-		{ length: CAR_SEQUENCE_FRAME_COUNT },
-		() => null,
-	);
-	const frameRequested: boolean[] = Array.from(
-		{ length: CAR_SEQUENCE_FRAME_COUNT },
-		() => false,
-	);
-
 	let isDisposed = false;
 	let rafId = 0;
-	let preloadTimer = 0;
-	let preloadCursor = 0;
 	let scrollSpan = 1;
 	let approachSpan = 1;
 	let trackDistance = 0;
@@ -294,26 +334,29 @@ export const setupHomeShowcase = (
 		}
 	};
 
-	const requestFrame = (frameIndex: number): void => {
-		if (frameIndex < 0 || frameIndex >= CAR_SEQUENCE_FRAME_COUNT) {
+	const requestFrame = (
+		sequence: FrameSequenceHandle,
+		frameIndex: number,
+	): void => {
+		if (frameIndex < 0 || frameIndex >= sequence.frameCount) {
 			return;
 		}
-		if (frameRequested[frameIndex]) {
+		if (sequence.frameRequested[frameIndex]) {
 			return;
 		}
 
-		frameRequested[frameIndex] = true;
+		sequence.frameRequested[frameIndex] = true;
 
 		const image = new Image();
 		image.decoding = "async";
-		image.src = frameUrlAt(frameIndex);
+		image.src = frameUrlAt(sequence, frameIndex);
 		image.addEventListener(
 			"load",
 			() => {
 				if (isDisposed) {
 					return;
 				}
-				frames[frameIndex] = image;
+				sequence.frames[frameIndex] = image;
 				queueRender();
 			},
 			{ once: true },
@@ -325,32 +368,32 @@ export const setupHomeShowcase = (
 					return;
 				}
 				// Allow future retry attempts if the request fails transiently.
-				frameRequested[frameIndex] = false;
+				sequence.frameRequested[frameIndex] = false;
 			},
 			{ once: true },
 		);
 	};
 
-	const schedulePreloadStep = (): void => {
+	const schedulePreloadStep = (sequence: FrameSequenceHandle): void => {
 		if (isDisposed) {
 			return;
 		}
 
 		while (
-			preloadCursor < CAR_SEQUENCE_FRAME_COUNT &&
-			frameRequested[preloadCursor]
+			sequence.preloadCursor < sequence.frameCount &&
+			sequence.frameRequested[sequence.preloadCursor]
 		) {
-			preloadCursor += 1;
+			sequence.preloadCursor += 1;
 		}
 
-		if (preloadCursor >= CAR_SEQUENCE_FRAME_COUNT) {
+		if (sequence.preloadCursor >= sequence.frameCount) {
 			return;
 		}
 
-		requestFrame(preloadCursor);
-		preloadCursor += 1;
-		preloadTimer = window.setTimeout(
-			schedulePreloadStep,
+		requestFrame(sequence, sequence.preloadCursor);
+		sequence.preloadCursor += 1;
+		sequence.preloadTimer = window.setTimeout(
+			() => schedulePreloadStep(sequence),
 			FRAME_PRELOAD_INTERVAL_MS,
 		);
 	};
@@ -361,12 +404,14 @@ export const setupHomeShowcase = (
 		}
 
 		hasStartedFrameLoading = true;
-		requestFrame(0);
-		requestFrame(1);
-		preloadTimer = window.setTimeout(
-			schedulePreloadStep,
-			FRAME_PRELOAD_INITIAL_DELAY_MS,
-		);
+		for (const sequence of sequences.values()) {
+			requestFrame(sequence, 0);
+			requestFrame(sequence, 1);
+			sequence.preloadTimer = window.setTimeout(
+				() => schedulePreloadStep(sequence),
+				FRAME_PRELOAD_INITIAL_DELAY_MS,
+			);
+		}
 	};
 
 	const render = (): void => {
@@ -405,19 +450,19 @@ export const setupHomeShowcase = (
 		const panelProgressBase = horizontalProgress;
 
 		for (const carCanvas of carCanvases) {
+			const frameCount = Math.max(1, carCanvas.sequence.frameCount);
 			const localProgress = clamp(
 				panelProgressBase * panels.length - carCanvas.vehicleIndex,
 				0,
 				1,
 			);
-			const frameIndex = Math.round(
-				localProgress * (CAR_SEQUENCE_FRAME_COUNT - 1),
-			);
-			requestFrame(frameIndex);
-			requestFrame(frameIndex - 1);
-			requestFrame(frameIndex + 1);
+			const frameIndex = Math.round(localProgress * (frameCount - 1));
+			requestFrame(carCanvas.sequence, frameIndex);
+			requestFrame(carCanvas.sequence, frameIndex - 1);
+			requestFrame(carCanvas.sequence, frameIndex + 1);
 			const frame =
-				findNearestLoadedFrame(frames, frameIndex) ?? findNearestLoadedFrame(frames, 0);
+				findNearestLoadedFrame(carCanvas.sequence.frames, frameIndex) ??
+				findNearestLoadedFrame(carCanvas.sequence.frames, 0);
 
 			if (!frame) {
 				continue;
@@ -520,8 +565,10 @@ export const setupHomeShowcase = (
 
 	cleanup.add(() => {
 		isDisposed = true;
-		if (preloadTimer !== 0) {
-			window.clearTimeout(preloadTimer);
+		for (const sequence of sequences.values()) {
+			if (sequence.preloadTimer !== 0) {
+				window.clearTimeout(sequence.preloadTimer);
+			}
 		}
 		if (rafId !== 0) {
 			window.cancelAnimationFrame(rafId);

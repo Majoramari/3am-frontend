@@ -10,23 +10,18 @@ type NewsletterTile = {
 const newsletterTiles: NewsletterTile[] = [
 	{
 		label: "Shop",
-		href: "#",
+		href: "/gears",
 		themeClassName: "newsletter__tile--shop",
 	},
 	{
-		label: "Get updates",
-		href: "#",
+		label: "Demo Drive",
+		href: "/demo",
 		themeClassName: "newsletter__tile--updates",
 	},
 	{
-		label: "Trade in",
-		href: "#",
+		label: "Build Yours",
+		href: "/dusk/build",
 		themeClassName: "newsletter__tile--trade-in",
-	},
-	{
-		label: "Service",
-		href: "#",
-		themeClassName: "newsletter__tile--service",
 	},
 ];
 
@@ -42,7 +37,7 @@ export class HomeNewsletterSection extends View<"section"> {
 		return this.tpl`
 			<div class="newsletter__shell">
 				<header class="newsletter__header">
-					<h2 class="newsletter__title">Newsletter</h2>
+					<h2 class="newsletter__title">Keep Exploring</h2>
 				</header>
 
 				<div class="newsletter__tiles">
@@ -52,7 +47,7 @@ export class HomeNewsletterSection extends View<"section"> {
 				<article class="newsletter__signup">
 					<div class="newsletter__signup-copy">
 						<h3 class="newsletter__signup-title">
-							More fully electric adventure is on the way.
+							More all-electric adventures are coming soon.
 							<br />
 							Sign up to follow along.
 						</h3>

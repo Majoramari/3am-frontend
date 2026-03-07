@@ -1,7 +1,6 @@
 import { FaqGrid, type FaqGridItem } from "@components/faqGrid";
 import { InputField } from "@components/inputField";
 import { LazyImage } from "@components/lazyImage";
-import { html } from "@lib/template";
 import { View } from "@lib/view";
 
 type DemoDriveVehicle = {
@@ -99,13 +98,8 @@ const faqItems: ReadonlyArray<FaqGridItem> = [
 			"Service animals are welcome. For other pets, please check with your location first.",
 	},
 	{
-		question: "Is Canada included in the demo drive program?",
-		answer: html`
-			You will receive an invitation to schedule through your
-			<a href="/signin">3AM Account</a>
-			when the opportunity is available in your area.
-		`,
-		open: true,
+		question: "Can my car transform into a giant robot?",
+		answer: "Maybe...",
 	},
 	{
 		question: "When can I demo drive future models?",
@@ -124,6 +118,24 @@ const formatLocalIsoDate = (date: Date): string => {
 };
 
 const normalizeZip = (value: string): string => value.replace(/\D/g, "").slice(0, 5);
+
+const resolveRequestedVehicleId = (): DemoDriveVehicle["id"] | null => {
+	if (typeof window === "undefined") {
+		return null;
+	}
+
+	const requestedVehicle = new URLSearchParams(window.location.search)
+		.get("vehicle")
+		?.trim()
+		.toLowerCase();
+	if (!requestedVehicle) {
+		return null;
+	}
+
+	return demoDriveVehicles.some((vehicle) => vehicle.id === requestedVehicle)
+		? (requestedVehicle as DemoDriveVehicle["id"])
+		: null;
+};
 
 const toMapEmbedSrc = (latitude: number, longitude: number): string => {
 	const delta = 0.28;
@@ -164,6 +176,16 @@ export class DemoDriveBookingSection extends View<"section"> {
 		const locationSelect = this.$<HTMLSelectElement>("[data-demo-drive-location]");
 		const mapFrame = this.$<HTMLIFrameElement>("[data-demo-drive-map]");
 		const mapLocationLabel = this.$<HTMLElement>("[data-demo-drive-map-location]");
+
+		const requestedVehicleId = resolveRequestedVehicleId();
+		if (requestedVehicleId) {
+			const vehicleInput = form.querySelector<HTMLInputElement>(
+				`input[name="vehicle"][value="${requestedVehicleId}"]`,
+			);
+			if (vehicleInput) {
+				vehicleInput.checked = true;
+			}
+		}
 
 		dateInput.min = formatLocalIsoDate(new Date());
 

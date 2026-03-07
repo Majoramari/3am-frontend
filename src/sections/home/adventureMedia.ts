@@ -5,23 +5,24 @@ import { setupHomeAdventureMedia } from "./adventureMediaBehavior";
 type AdventureItem = {
 	pill: string;
 	description: string;
+	mediaSrc: string;
+	posterSrc: string;
 };
 
 const adventureItems: AdventureItem[] = [
 	{
-		pill: "Technology",
-		description:
-			"From intuitive software to smart headlights to mobile app, Rivians are equipped with technology that helps make driving safer, easier and more fun.",
-	},
-	{
 		pill: "Performance",
 		description:
 			"Powerful, efficient and tuned for every surface with up to 9 drive modes built for changing terrain.",
+		mediaSrc: "/assets/shared/performance.webm",
+		posterSrc: "/assets/shared/placeholder.webp",
 	},
 	{
 		pill: "Design",
 		description:
 			"Durable proportions, clean interior architecture and purposeful details designed for long days outside.",
+		mediaSrc: "/assets/shared/design.webm",
+		posterSrc: "/assets/shared/placeholder.webp",
 	},
 ];
 
@@ -41,7 +42,7 @@ export class HomeAdventureMediaSection extends View<"section"> {
 		return this.tpl`
 			<div class="adventure-media__shell">
 				<header class="adventure-media__header">
-					<h2 class="adventure-media__title">designed for adventure</h2>
+					<h2 class="adventure-media__title">Designed for adventure</h2>
 					<div class="adventure-media__pillbar" role="tablist" aria-label="Adventure categories">
 						${adventureItems.map(
 							(item, index) =>
@@ -71,13 +72,12 @@ export class HomeAdventureMediaSection extends View<"section"> {
 			<article class="adventure-media__card" data-adventure-card-index="${index}">
 				<div class="adventure-media__video-wrap">
 					${new LazyVideo({
-						src: "/assets/dusk/hero_video.webm",
+						src: item.mediaSrc,
 						type: "video/webm",
-						poster: "/assets/dusk/hero_endframe.webp",
+						poster: item.posterSrc,
 						className: "adventure-media__video",
 						autoPlay: true,
 						muted: true,
-						loop: true,
 						playsInline: true,
 						preload: "none",
 					})}

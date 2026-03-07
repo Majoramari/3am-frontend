@@ -1,7 +1,8 @@
 import { Button } from "@components/button";
-import { dashboardApi, productsApi } from "@lib/api";
+import { dashboardApi, type Product, productsApi } from "@lib/api";
 import type { Category, DashboardDTO } from "@lib/api/auth.types";
 import { isAdmin, isAuthenticated, requireAdmin } from "@lib/authGuard";
+import { optimizeImageToWebp } from "@lib/imageOptimization";
 import { emitToast } from "@lib/toastBus";
 import { View } from "@lib/view";
 
@@ -10,9 +11,9 @@ type DashboardMetric = {
 	value: string;
 };
 
-const MAX_METRICS = 8;
-
 type FormFeedbackState = "success" | "error";
+
+const MAX_PAYLOAD_METRICS = 8;
 
 const isFiniteNumber = (value: unknown): value is number =>
 	typeof value === "number" && Number.isFinite(value);
@@ -34,6 +35,12 @@ const parseJson = (value: string): Record<string, unknown> | null => {
 	}
 };
 
+const currencyFormatter = new Intl.NumberFormat("en-US", {
+	style: "currency",
+	currency: "USD",
+	maximumFractionDigits: 2,
+});
+
 export class DashboardPage extends View<"section"> {
 	private isLoading = true;
 	private error: string | null = null;
@@ -41,6 +48,12 @@ export class DashboardPage extends View<"section"> {
 	private categories: Category[] = [];
 	private isLoadingCategories = false;
 	private isSubmittingProduct = false;
+
+	private products: Product[] = [];
+	private isLoadingProducts = false;
+	private productsError: string | null = null;
+	private updatingProductId: number | null = null;
+	private deletingProductId: number | null = null;
 
 	constructor() {
 		super("section", { className: ["page-section", "dashboard-page"] });
@@ -52,9 +65,16 @@ export class DashboardPage extends View<"section"> {
 			return;
 		}
 
-		void this.loadDashboard();
-		void this.loadCategories();
+		void this.refreshAll();
 		this.bindEvents();
+	}
+
+	private async refreshAll(): Promise<void> {
+		await Promise.all([
+			this.loadDashboard(),
+			this.loadCategories(),
+			this.loadProducts(),
+		]);
 	}
 
 	private async loadDashboard(): Promise<void> {
@@ -98,7 +118,7 @@ export class DashboardPage extends View<"section"> {
 		try {
 			const categories = await productsApi.getCategories();
 			this.categories = [...categories].sort((a, b) =>
-				a.name.localeCompare(b.name),
+				(a.name ?? "").localeCompare(b.name ?? ""),
 			);
 		} catch (error) {
 			console.error("Failed to load product categories:", error);
@@ -114,6 +134,26 @@ export class DashboardPage extends View<"section"> {
 		}
 	}
 
+	private async loadProducts(): Promise<void> {
+		this.isLoadingProducts = true;
+		this.productsError = null;
+		this.rerender();
+		this.bindEvents();
+
+		try {
+			const products = await productsApi.getAll();
+			this.products = [...products].sort((a, b) => b.id - a.id);
+		} catch (error) {
+			console.error("Failed to load products:", error);
+			this.productsError =
+				error instanceof Error ? error.message : "Unable to load products.";
+		} finally {
+			this.isLoadingProducts = false;
+			this.rerender();
+			this.bindEvents();
+		}
+	}
+
 	private bindEvents(): void {
 		const refreshButton = this.element.querySelector<HTMLButtonElement>(
 			"[data-dashboard-refresh]",
@@ -122,11 +162,11 @@ export class DashboardPage extends View<"section"> {
 			this.cleanup.on(refreshButton, "click", this.handleRefresh);
 		}
 
-		const form = this.element.querySelector<HTMLFormElement>(
+		const addProductForm = this.element.querySelector<HTMLFormElement>(
 			"[data-admin-add-product-form]",
 		);
-		if (form) {
-			this.cleanup.on(form, "submit", this.handleAddProductSubmit);
+		if (addProductForm) {
+			this.cleanup.on(addProductForm, "submit", this.handleAddProductSubmit);
 		}
 
 		const imageBrowseButton = this.element.querySelector<HTMLButtonElement>(
@@ -144,9 +184,38 @@ export class DashboardPage extends View<"section"> {
 		if (imageInput) {
 			this.cleanup.on(imageInput, "change", this.handleImageSelection);
 		}
+
+		const updateForms = this.element.querySelectorAll<HTMLFormElement>(
+			"[data-admin-product-update-form]",
+		);
+		for (const form of updateForms) {
+			this.cleanup.on(form, "submit", this.handleProductUpdateSubmit);
+		}
+
+		const productImageBrowseButtons =
+			this.element.querySelectorAll<HTMLButtonElement>(
+				"[data-admin-product-image-browse]",
+			);
+		for (const button of productImageBrowseButtons) {
+			this.cleanup.on(button, "click", this.handleProductImageBrowse);
+		}
+
+		const productImageInputs = this.element.querySelectorAll<HTMLInputElement>(
+			"[data-admin-product-image-input-card]",
+		);
+		for (const input of productImageInputs) {
+			this.cleanup.on(input, "change", this.handleProductImageSelection);
+		}
+
+		const deleteButtons = this.element.querySelectorAll<HTMLButtonElement>(
+			"[data-admin-product-delete]",
+		);
+		for (const button of deleteButtons) {
+			this.cleanup.on(button, "click", this.handleProductDeleteClick);
+		}
 	}
 
-	private buildMetrics(payload: DashboardDTO): DashboardMetric[] {
+	private buildPayloadMetrics(payload: DashboardDTO): DashboardMetric[] {
 		if (
 			payload === null ||
 			Array.isArray(payload) ||
@@ -157,7 +226,7 @@ export class DashboardPage extends View<"section"> {
 
 		const metrics: DashboardMetric[] = [];
 		for (const [key, value] of Object.entries(payload)) {
-			if (metrics.length >= MAX_METRICS) {
+			if (metrics.length >= MAX_PAYLOAD_METRICS) {
 				break;
 			}
 
@@ -246,6 +315,40 @@ export class DashboardPage extends View<"section"> {
 		return [{ label: "Response", value: String(payload) }];
 	}
 
+	private buildInventoryMetrics(): DashboardMetric[] {
+		const totalProducts = this.products.length;
+		const totalStock = this.products.reduce(
+			(total, product) => total + Math.max(0, product.quantity),
+			0,
+		);
+		const outOfStock = this.products.filter(
+			(product) => product.quantity <= 0,
+		).length;
+		const lowStock = this.products.filter(
+			(product) => product.quantity > 0 && product.quantity <= 5,
+		).length;
+		const categories = new Set(
+			this.products
+				.map((product) => product.categoryName?.trim())
+				.filter((name) => Boolean(name)),
+		).size;
+
+		const avgPrice =
+			totalProducts > 0
+				? this.products.reduce((total, product) => total + product.price, 0) /
+					totalProducts
+				: 0;
+
+		return [
+			{ label: "Products", value: this.formatNumeric(totalProducts) },
+			{ label: "In Stock Units", value: this.formatNumeric(totalStock) },
+			{ label: "Out Of Stock", value: this.formatNumeric(outOfStock) },
+			{ label: "Low Stock (<= 5)", value: this.formatNumeric(lowStock) },
+			{ label: "Categories", value: this.formatNumeric(categories) },
+			{ label: "Avg Price", value: currencyFormatter.format(avgPrice) },
+		];
+	}
+
 	private formatLabel(label: string): string {
 		return label
 			.replace(/([a-z])([A-Z])/g, "$1 $2")
@@ -317,8 +420,22 @@ export class DashboardPage extends View<"section"> {
 		fileName.textContent = name?.trim() || "No file selected";
 	}
 
+	private setProductImageFileName(
+		form: HTMLFormElement,
+		name: string | null,
+	): void {
+		const fileName = form.querySelector<HTMLElement>(
+			"[data-admin-product-image-file-name]",
+		);
+		if (!fileName) {
+			return;
+		}
+
+		fileName.textContent = name?.trim() || "No image selected";
+	}
+
 	private readonly handleRefresh = (): void => {
-		void this.loadDashboard();
+		void this.refreshAll();
 	};
 
 	private readonly handleImageSelection = (event: Event): void => {
@@ -348,6 +465,42 @@ export class DashboardPage extends View<"section"> {
 		void this.submitAddProductForm(form);
 	};
 
+	private readonly handleProductImageBrowse = (event: Event): void => {
+		const button = event.currentTarget;
+		if (!(button instanceof HTMLButtonElement)) {
+			return;
+		}
+
+		const form = button.closest<HTMLFormElement>(
+			"[data-admin-product-update-form]",
+		);
+		if (!form) {
+			return;
+		}
+
+		const input = form.querySelector<HTMLInputElement>(
+			"[data-admin-product-image-input-card]",
+		);
+		input?.click();
+	};
+
+	private readonly handleProductImageSelection = (event: Event): void => {
+		const input = event.currentTarget;
+		if (!(input instanceof HTMLInputElement)) {
+			return;
+		}
+
+		const form = input.closest<HTMLFormElement>(
+			"[data-admin-product-update-form]",
+		);
+		if (!form) {
+			return;
+		}
+
+		const fileName = input.files?.[0]?.name ?? null;
+		this.setProductImageFileName(form, fileName);
+	};
+
 	private async submitAddProductForm(form: HTMLFormElement): Promise<void> {
 		if (this.isSubmittingProduct) {
 			return;
@@ -362,8 +515,6 @@ export class DashboardPage extends View<"section"> {
 		const price = Number(formData.get("price"));
 		const stockQuantity = Number(formData.get("stockQuantity"));
 		const rawImage = formData.get("image");
-		const image =
-			rawImage instanceof File && rawImage.size > 0 ? rawImage : undefined;
 
 		if (!name || !description || !brand) {
 			this.setFormFeedback(
@@ -415,6 +566,11 @@ export class DashboardPage extends View<"section"> {
 		this.clearFormFeedback(form);
 
 		try {
+			const image =
+				rawImage instanceof File && rawImage.size > 0
+					? await optimizeImageToWebp(rawImage)
+					: undefined;
+
 			await productsApi.addProduct({
 				name,
 				description,
@@ -434,7 +590,7 @@ export class DashboardPage extends View<"section"> {
 			});
 			form.reset();
 			this.setImageFileName(form, null);
-			await this.loadDashboard();
+			await Promise.all([this.loadDashboard(), this.loadProducts()]);
 		} catch (error) {
 			console.error("Failed to add product:", error);
 			const message =
@@ -453,9 +609,283 @@ export class DashboardPage extends View<"section"> {
 		}
 	}
 
+	private readonly handleProductUpdateSubmit = (event: Event): void => {
+		event.preventDefault();
+		const form = event.currentTarget;
+		if (!(form instanceof HTMLFormElement)) {
+			return;
+		}
+
+		void this.submitProductUpdate(form);
+	};
+
+	private async submitProductUpdate(form: HTMLFormElement): Promise<void> {
+		const productId = Number(form.dataset.productId);
+		if (!Number.isFinite(productId) || productId <= 0) {
+			return;
+		}
+
+		const product = this.products.find(
+			(candidate) => candidate.id === productId,
+		);
+		if (!product) {
+			return;
+		}
+
+		const formData = new FormData(form);
+		const price = Number(formData.get("price"));
+		const stockQuantity = Number(formData.get("stockQuantity"));
+		const rawImage = formData.get("image");
+
+		if (!isFiniteNumber(price) || price <= 0) {
+			emitToast({
+				level: "error",
+				title: "Invalid price",
+				message: "Price must be greater than zero.",
+			});
+			return;
+		}
+
+		if (
+			!isFiniteNumber(stockQuantity) ||
+			stockQuantity < 0 ||
+			!Number.isInteger(stockQuantity)
+		) {
+			emitToast({
+				level: "error",
+				title: "Invalid stock",
+				message: "Stock quantity must be a whole number 0 or higher.",
+			});
+			return;
+		}
+
+		this.updatingProductId = productId;
+		this.rerender();
+		this.bindEvents();
+
+		try {
+			const image =
+				rawImage instanceof File && rawImage.size > 0
+					? await optimizeImageToWebp(rawImage)
+					: undefined;
+
+			await productsApi.updateProduct(productId, {
+				name: product.name || `Product ${product.id}`,
+				description: product.description || `Product ${product.id}`,
+				price,
+				stockQuantity,
+				image,
+			});
+
+			emitToast({
+				level: "success",
+				title: "Product updated",
+				message: `${product.name} was updated successfully.`,
+			});
+			await Promise.all([this.loadProducts(), this.loadDashboard()]);
+		} catch (error) {
+			console.error("Failed to update product:", error);
+			emitToast({
+				level: "error",
+				title: "Update failed",
+				message:
+					error instanceof Error ? error.message : "Failed to update product.",
+			});
+		} finally {
+			this.updatingProductId = null;
+			this.rerender();
+			this.bindEvents();
+		}
+	}
+
+	private readonly handleProductDeleteClick = (event: Event): void => {
+		const button = event.currentTarget;
+		if (!(button instanceof HTMLButtonElement)) {
+			return;
+		}
+
+		const productId = Number(button.dataset.productId);
+		if (!Number.isFinite(productId) || productId <= 0) {
+			return;
+		}
+
+		void this.deleteProduct(productId);
+	};
+
+	private async deleteProduct(productId: number): Promise<void> {
+		const product = this.products.find(
+			(candidate) => candidate.id === productId,
+		);
+		if (!product) {
+			return;
+		}
+
+		const confirmed = window.confirm(
+			`Delete "${product.name}" from the catalog?`,
+		);
+		if (!confirmed) {
+			return;
+		}
+
+		this.deletingProductId = productId;
+		this.rerender();
+		this.bindEvents();
+
+		try {
+			await productsApi.deleteProduct(productId);
+			emitToast({
+				level: "success",
+				title: "Product deleted",
+				message: `${product.name} was removed from the catalog.`,
+			});
+			await Promise.all([this.loadProducts(), this.loadDashboard()]);
+		} catch (error) {
+			console.error("Failed to delete product:", error);
+			emitToast({
+				level: "error",
+				title: "Delete failed",
+				message:
+					error instanceof Error ? error.message : "Failed to delete product.",
+			});
+		} finally {
+			this.deletingProductId = null;
+			this.rerender();
+			this.bindEvents();
+		}
+	}
+
+	private renderMetricSection(
+		title: string,
+		description: string,
+		metrics: ReadonlyArray<DashboardMetric>,
+	): DocumentFragment {
+		return this.tpl`
+			<section class="dashboard-metrics-panel">
+				<div class="dashboard-metrics-panel__header">
+					<h2 class="dashboard-metrics-panel__title">${title}</h2>
+					<p class="dashboard-metrics-panel__description">${description}</p>
+				</div>
+				<div class="dashboard-metrics" aria-label="${title}">
+					${metrics.map(
+						(metric) => this.tpl`
+							<article class="dashboard-metric">
+								<p class="dashboard-metric__label">${metric.label}</p>
+								<p class="dashboard-metric__value">${metric.value}</p>
+							</article>
+						`,
+					)}
+				</div>
+			</section>
+		`;
+	}
+
+	private renderProductCard(product: Product): DocumentFragment {
+		const isUpdating = this.updatingProductId === product.id;
+		const isDeleting = this.deletingProductId === product.id;
+		const isBusy = isUpdating || isDeleting;
+		const imageUrl =
+			product.imageUrl?.trim() || "/assets/shared/placeholder.png";
+		const category = product.categoryName?.trim() || "Uncategorized";
+
+		return this.tpl`
+			<article class="dashboard-product-item">
+				<div class="dashboard-product-item__media">
+					<img src="${imageUrl}" alt="${product.name}" loading="lazy" />
+				</div>
+				<div class="dashboard-product-item__content">
+					<div class="dashboard-product-item__head">
+						<h3 class="dashboard-product-item__name">${product.name}</h3>
+						<p class="dashboard-product-item__meta">
+							#${product.id} · ${category}
+						</p>
+					</div>
+
+					<form
+						class="dashboard-product-item__form"
+						data-admin-product-update-form
+						data-product-id="${product.id}"
+					>
+						<label>
+							<span>Price</span>
+							<input
+								type="number"
+								name="price"
+								min="0.01"
+								step="0.01"
+								value="${product.price.toFixed(2)}"
+								${isBusy ? "disabled" : ""}
+							/>
+						</label>
+						<label>
+							<span>Stock</span>
+							<input
+								type="number"
+								name="stockQuantity"
+								min="0"
+								step="1"
+								value="${product.quantity}"
+								${isBusy ? "disabled" : ""}
+							/>
+						</label>
+						<label class="dashboard-product-item__field--full">
+							<span>Image</span>
+							<div class="dashboard-product-item__file-picker">
+								<input
+									class="dashboard-product-item__file-input"
+									type="file"
+									name="image"
+									accept="image/*"
+									data-admin-product-image-input-card
+									${isBusy ? "disabled" : ""}
+								/>
+								${new Button({
+									as: "button",
+									type: "button",
+									label: "Browse image",
+									variant: "outline",
+									className: "dashboard-product-item__browse",
+									attrs: { disabled: isBusy },
+									dataset: { adminProductImageBrowse: true },
+								})}
+								<span
+									class="dashboard-product-item__file-name"
+									data-admin-product-image-file-name
+								>
+									No image selected
+								</span>
+							</div>
+						</label>
+						<div class="dashboard-product-item__actions">
+							${new Button({
+								as: "button",
+								type: "submit",
+								label: isUpdating ? "Saving..." : "Save",
+								variant: "solid",
+								className: "dashboard-product-item__save",
+								attrs: { disabled: isBusy },
+							})}
+							${new Button({
+								as: "button",
+								type: "button",
+								label: isDeleting ? "Deleting..." : "Delete",
+								variant: "outline",
+								className: "dashboard-product-item__delete",
+								attrs: { disabled: isBusy },
+								dataset: { adminProductDelete: true, productId: product.id },
+							})}
+						</div>
+					</form>
+				</div>
+			</article>
+		`;
+	}
+
 	render(): DocumentFragment {
-		const metrics =
-			this.isLoading || this.error ? [] : this.buildMetrics(this.payload);
+		const payloadMetrics =
+			this.isLoading || this.error
+				? []
+				: this.buildPayloadMetrics(this.payload);
+		const inventoryMetrics = this.buildInventoryMetrics();
 
 		return this.tpl`
 			<div class="dashboard-shell">
@@ -463,7 +893,7 @@ export class DashboardPage extends View<"section"> {
 					<p class="dashboard-eyebrow">Admin</p>
 					<h1 class="dashboard-title">Dashboard</h1>
 					<p class="dashboard-description">
-						Live system overview with product management controls.
+						Live operations overview with product inventory controls.
 					</p>
 					${new Button({
 						as: "button",
@@ -491,23 +921,6 @@ export class DashboardPage extends View<"section"> {
 							<div class="dashboard-status-card dashboard-status-card--error">
 								<p class="dashboard-status">${this.error}</p>
 							</div>
-						`
-						: ""
-				}
-
-				${
-					!this.isLoading && !this.error
-						? this.tpl`
-							<section class="dashboard-metrics" aria-label="Dashboard overview">
-								${metrics.map(
-									(metric) => this.tpl`
-										<article class="dashboard-metric">
-											<p class="dashboard-metric__label">${metric.label}</p>
-											<p class="dashboard-metric__value">${metric.value}</p>
-										</article>
-									`,
-								)}
-							</section>
 						`
 						: ""
 				}
@@ -557,7 +970,7 @@ export class DashboardPage extends View<"section"> {
 								</option>
 								${this.categories.map(
 									(category) => this.tpl`
-										<option value="${category.id}">${category.name}</option>
+										<option value="${category.id}">${category.name ?? "Uncategorized"}</option>
 									`,
 								)}
 							</select>
@@ -609,6 +1022,82 @@ export class DashboardPage extends View<"section"> {
 							<p class="dashboard-product-form__feedback" data-admin-form-feedback aria-live="polite"></p>
 						</div>
 					</form>
+				</section>
+
+				${
+					!this.error
+						? this.tpl`
+							${this.renderMetricSection(
+								"Inventory Snapshot",
+								"Computed from /api/Product for live stock and pricing.",
+								inventoryMetrics,
+							)}
+							${this.renderMetricSection(
+								"Backend Snapshot",
+								"Raw overview from /api/Dashboard.",
+								payloadMetrics,
+							)}
+						`
+						: ""
+				}
+
+				<section class="dashboard-products" aria-label="Catalog management">
+					<div class="dashboard-products__header">
+						<h2 class="dashboard-products__title">Catalog</h2>
+						<p class="dashboard-products__description">
+							Edit price and stock inline using the latest Product endpoints.
+						</p>
+					</div>
+
+					${
+						this.isLoadingProducts
+							? this.tpl`
+								<div class="dashboard-status-card">
+									<p class="dashboard-status">Loading products...</p>
+								</div>
+							`
+							: ""
+					}
+
+					${
+						!this.isLoadingProducts && this.productsError
+							? this.tpl`
+								<div class="dashboard-status-card dashboard-status-card--error">
+									<p class="dashboard-status">${this.productsError}</p>
+								</div>
+							`
+							: ""
+					}
+
+					${
+						!this.isLoadingProducts &&
+						!this.productsError &&
+						this.products.length === 0
+							? this.tpl`
+								<div class="dashboard-status-card">
+									<p class="dashboard-status">No products found.</p>
+								</div>
+							`
+							: ""
+					}
+
+					${
+						!this.isLoadingProducts &&
+						!this.productsError &&
+						this.products.length > 0
+							? this.tpl`
+								<ul class="dashboard-products__list">
+									${this.products.map(
+										(product) => this.tpl`
+											<li class="dashboard-products__list-item">
+												${this.renderProductCard(product)}
+											</li>
+										`,
+									)}
+								</ul>
+							`
+							: ""
+					}
 				</section>
 			</div>
 		`;

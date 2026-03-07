@@ -82,7 +82,7 @@ export type CallbackDTO = {
 
 export type Category = {
 	id: number;
-	name: string;
+	name: string | null;
 	parent_Category_Id: number | null;
 };
 
@@ -94,6 +94,14 @@ export type AddProductDTO = {
 	brand: string;
 	specsJson: string;
 	categoryId: number;
+	image?: File | null;
+};
+
+export type UpdateProductDTO = {
+	name: string;
+	description: string;
+	price: number;
+	stockQuantity: number;
 	image?: File | null;
 };
 

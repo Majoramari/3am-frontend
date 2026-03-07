@@ -11,6 +11,7 @@ import type {
 	RefreshTokenDTO,
 	RegisterDTO,
 	RequestOtpDTO,
+	UpdateProductDTO,
 	VerifyOtpDTO,
 } from "./auth.types";
 
@@ -595,6 +596,37 @@ export const productsApi = {
 			return normalizeProduct(payload);
 		});
 	},
+
+	updateProduct: (
+		id: number,
+		dto: UpdateProductDTO,
+	): Promise<Product | undefined> => {
+		const form = new FormData();
+		form.set("Name", dto.name.trim());
+		form.set("Description", dto.description.trim());
+		form.set("Price", String(dto.price));
+		form.set("Stock_Quantity", String(dto.stockQuantity));
+		if (dto.image) {
+			form.set("ImageFile", dto.image);
+		}
+
+		return fetchApi<unknown>(`/Product/update-product/${id}`, {
+			method: "PUT",
+			body: form,
+			requiresAuth: true,
+		}).then((payload) => {
+			if (!payload || typeof payload !== "object") {
+				return undefined;
+			}
+			return normalizeProduct(payload);
+		});
+	},
+
+	deleteProduct: (id: number): Promise<void> =>
+		fetchApi<void>(`/Product/delete-product/${id}`, {
+			method: "DELETE",
+			requiresAuth: true,
+		}),
 };
 
 export const authApi = {
