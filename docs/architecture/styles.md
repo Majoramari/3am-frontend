@@ -59,6 +59,18 @@ Examples:
 
 This keeps selectors predictable and prevents cross-module leakage.
 
+## Specificity rule (required)
+
+Do not use `!important`.
+
+If a style is not applying, fix the cascade instead:
+
+- place styles in the correct layer/file
+- use the intended module class on the element
+- increase selector clarity with module-scoped class selectors (not global overrides)
+
+`!important` makes overrides harder to reason about and causes long-term maintenance issues.
+
 ## Build and style a new component (real workflow)
 
 Assume you create `src/components/tagPill.ts`.

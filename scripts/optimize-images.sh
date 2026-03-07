@@ -138,7 +138,7 @@ while IFS= read -r -d '' img; do
 	ext="${ext,,}"
 	orig_size=$(stat -c%s "$img")
 
-	if [[ "$orig_size" -le "$MAX_SIZE_BYTES" ]]; then
+	if [[ "$ext" == "webp" && "$orig_size" -le "$MAX_SIZE_BYTES" ]]; then
 		echo "skipped: $img (${orig_size} bytes <= ${MAX_SIZE_BYTES} bytes threshold)"
 		skipped=$((skipped + 1))
 		continue
@@ -178,8 +178,15 @@ while IFS= read -r -d '' img; do
 			optimized=$((optimized + 1))
 		else
 			rm -f "$tmp_out"
-			echo "skipped: $img (cannot hit ${TARGET_SIZE_BYTES} bytes without going below quality ${MIN_QUALITY})"
-			skipped=$((skipped + 1))
+			if [[ "$ext" == "webp" ]]; then
+				echo "skipped: $img (cannot hit ${TARGET_SIZE_BYTES} bytes without going below quality ${MIN_QUALITY})"
+				skipped=$((skipped + 1))
+			else
+				encode_once "$img" "$out" "$MIN_QUALITY"
+				new_size="$(stat -c%s "$out")"
+				echo "optimized: $img -> $out ($new_size bytes, fallback q=${MIN_QUALITY}, target=${TARGET_SIZE_BYTES} unmet)"
+				optimized=$((optimized + 1))
+			fi
 		fi
 		continue
 	fi

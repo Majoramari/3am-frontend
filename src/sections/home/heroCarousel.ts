@@ -12,14 +12,16 @@ const SWIPE_THRESHOLD_RATIO = 0.1;
 const INTERACTIVE_TARGET_SELECTOR =
 	"a, button, input, select, textarea, [role='button']";
 
-const hydrateClonedSlideMedia = (slide: HTMLDivElement): void => {
-	// Loop clones are created after route-level lazy scan.
-	// Hydrate clone media immediately so wrap transitions don't flash placeholders.
+const hydrateSlideMedia = (slide: HTMLDivElement): void => {
+	// Hero slides can move into view quickly (swipe/autoplay/loop clones).
+	// Hydrate eager sources once so transitions never reveal lazy placeholders.
 	for (const source of slide.querySelectorAll<HTMLSourceElement>("source")) {
 		hydrateDeferredSource(source);
 	}
 
 	for (const image of slide.querySelectorAll<HTMLImageElement>("img")) {
+		// Slides can enter view immediately during drag; avoid browser lazy-delay.
+		image.loading = "eager";
 		hydrateDeferredImage(image);
 	}
 };
@@ -29,7 +31,7 @@ const makeLoopClone = (slide: HTMLDivElement): HTMLDivElement => {
 	clone.classList.add("hero-slide--clone");
 	clone.removeAttribute("id");
 	clone.setAttribute("aria-hidden", "true");
-	hydrateClonedSlideMedia(clone);
+	hydrateSlideMedia(clone);
 	return clone;
 };
 
@@ -58,6 +60,11 @@ export const setupHomeHeroCarousel = (
 
 	if (realSlides.length === 0 || dots.length === 0) {
 		return;
+	}
+
+	for (const slide of realSlides) {
+		// Preload all hero slides so quick swipe transitions never show placeholders.
+		hydrateSlideMedia(slide);
 	}
 
 	const slideCount = realSlides.length;

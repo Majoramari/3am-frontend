@@ -29,6 +29,14 @@
 		--nav-blur-strength: 10px;
 	}
 
+	body.route-dusk-build
+		.nav-shell:is(.is-scrolled, :hover, :focus-within, .is-mobile-open) {
+		--nav-border-color: rgb(74 74 74);
+		--nav-surface-color: rgb(8 8 10 / 88%);
+		--nav-text-color: var(--color-white);
+		--nav-blur-strength: 10px;
+	}
+
 	.nav-inner {
 		position: relative;
 		width: 100%;
@@ -111,18 +119,21 @@
 	.nav-shell:not(.is-scrolled):not(:hover):not(:focus-within)
 		.nav-link-demo-drive {
 		/* Keep CTA flat in transparent-navbar state. */
-		background: #ffac00;
-		border-color: #ffac00;
+		--ui-button-cta-border-width: 0;
+		--ui-button-cta-inner: #f2a300;
+		background: #f2a300;
+		border-color: transparent;
 		color: var(--color-black);
 		box-shadow: none;
 		animation: none;
 	}
 
 	.nav-shell:not(.is-scrolled):not(:hover):not(:focus-within)
-		.nav-link-demo-drive::after {
-		/* Hide CTA shine strip in transparent-navbar state. */
-		opacity: 0;
-		animation: none;
+		.nav-link-demo-drive::before {
+		/* Keep CTA interior fully filled when border width is zero. */
+		inset: 0;
+		border-radius: inherit;
+		background: #f2a300;
 	}
 
 	.nav-shell:not(.is-scrolled):not(:hover):not(:focus-within)

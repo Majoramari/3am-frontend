@@ -47,6 +47,44 @@ In this version, setup happens in lifecycle, and cleanup is automatic.
 Never attach global listeners directly in `render()`.
 :::
 
+## Keep nesting shallow (max 3 levels)
+
+In TypeScript and CSS logic, do not nest deeper than 3 levels (`if`, `for`, callbacks, etc.). If logic goes deeper, extract a helper function or return early.
+
+Exceptions:
+
+- HTML/template markup (`this.tpl` structure) can exceed this when needed for semantic layout.
+- Declarative config/data objects (for example `defineConfig({...})`, route maps, static schema/data shapes) can exceed this when deeper object nesting is structural data, not control-flow complexity.
+
+### Problematic Example (too deep)
+
+```ts
+if (user) {
+	if (user.profile) {
+		for (const order of user.profile.orders) {
+			if (order.status === "open") {
+				processOrder(order);
+			}
+		}
+	}
+}
+```
+
+### Recommended Example (early returns + extraction)
+
+```ts
+if (!user?.profile) {
+	return;
+}
+
+for (const order of user.profile.orders) {
+	if (order.status !== "open") {
+		continue;
+	}
+	processOrder(order);
+}
+```
+
 ## Use lifecycle and cleanup intentionally
 
 Use `onMount()` for DOM-dependent setup.
@@ -107,6 +145,8 @@ For full styling flow, see [Styles](/architecture/styles).
 Component and section styles should use class selectors, not raw element selectors.
 
 Use modern CSS and BAM naming with module prefixes (for example, navbar classes start with `nav-`).
+
+Do not use `!important`; resolve cascade issues through layers and module-scoped class selectors.
 
 For the required selector, modern CSS, and BAM rules with examples, follow [Styles](/architecture/styles).
 

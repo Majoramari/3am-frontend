@@ -1,0 +1,108 @@
+@layer sections {
+	.page-section.not-found-page {
+		inline-size: 100%;
+		min-block-size: 100dvh;
+		padding-inline: clamp(1.4rem, 3vw, 4rem);
+		padding-block: clamp(10rem, 12vw, 14rem) clamp(4rem, 7vw, 7rem);
+		display: grid;
+		place-items: center;
+		background:
+			radial-gradient(
+				80% 64% at 50% -12%,
+				rgb(230 155 0 / 0.18) 0%,
+				transparent 58%
+			),
+			linear-gradient(180deg, #141414 0%, #060606 100%);
+		color: #f3f3f3;
+	}
+
+	.not-found {
+		inline-size: min(100%, 86rem);
+		display: grid;
+		justify-items: center;
+		text-align: center;
+		gap: clamp(1rem, 1.8vw, 1.6rem);
+	}
+
+	.not-found__code {
+		margin: 0;
+		font-size: clamp(9rem, 20vw, 20rem);
+		font-weight: 700;
+		line-height: 0.85;
+		letter-spacing: 0.03em;
+		color: rgb(230 155 0 / 0.26);
+		user-select: none;
+	}
+
+	.not-found__title {
+		margin: 0;
+		font-size: clamp(3.2rem, 5vw, 6rem);
+		line-height: 0.95;
+		letter-spacing: -0.02em;
+	}
+
+	.not-found__subtitle {
+		margin: 0;
+		font-size: clamp(1.7rem, 1.9vw, 2.2rem);
+		line-height: 1.4;
+		color: rgb(242 242 242 / 0.78);
+	}
+
+	.not-found__actions {
+		margin-top: clamp(0.8rem, 1.4vw, 1.4rem);
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 0.9rem;
+	}
+
+	.not-found__action {
+		min-block-size: 4.4rem;
+		padding-inline: 1.8rem;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 999rem;
+		border: 1px solid transparent;
+		font-size: 1.4rem;
+		font-weight: 700;
+		letter-spacing: 0.03em;
+		text-decoration: none;
+		transition:
+			color var(--transition-base) var(--ease-standard),
+			background-color var(--transition-base) var(--ease-standard),
+			border-color var(--transition-base) var(--ease-standard);
+	}
+
+	.not-found__action--primary {
+		background: #e69b00;
+		color: #1a1203;
+	}
+
+	.not-found__action--primary:hover,
+	.not-found__action--primary:focus-visible {
+		background: #f0a300;
+	}
+
+	.not-found__action--ghost {
+		border-color: rgb(255 255 255 / 0.24);
+		background: rgb(18 18 18 / 0.88);
+		color: rgb(245 245 245 / 0.92);
+	}
+
+	.not-found__action--ghost:hover,
+	.not-found__action--ghost:focus-visible {
+		border-color: #e69b00;
+		color: #e69b00;
+	}
+
+	@media (max-width: 720px) {
+		.not-found__actions {
+			inline-size: 100%;
+		}
+
+		.not-found__action {
+			inline-size: 100%;
+		}
+	}
+}

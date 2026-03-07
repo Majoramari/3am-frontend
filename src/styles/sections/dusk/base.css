@@ -1,0 +1,9 @@
+@layer sections {
+	.dusk-page {
+		background: var(--background);
+	}
+
+	.dusk-page .page-section {
+		background: var(--background);
+	}
+}

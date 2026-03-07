@@ -1,0 +1,122 @@
+@layer components {
+	.ui-faq {
+		display: grid;
+		gap: clamp(1.2rem, 2vw, 2rem);
+	}
+
+	.ui-faq__title {
+		margin: 0;
+		font-size: clamp(3.8rem, 4.4vw, 5.2rem);
+		line-height: 0.94;
+		letter-spacing: -0.02em;
+		color: #0f141d;
+	}
+
+	.ui-faq__grid {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 1.2rem;
+	}
+
+	.ui-faq__columns {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		display: grid;
+		gap: 1.2rem;
+	}
+
+	.ui-faq__column {
+		display: grid;
+		align-content: start;
+		gap: 1.2rem;
+	}
+
+	.ui-faq__item {
+		border: 1px solid rgb(20 24 29 / 0.22);
+		border-radius: 0.8rem;
+		background: #efefef;
+		overflow: clip;
+		transition:
+			border-color var(--transition-base) var(--ease-standard),
+			background-color var(--transition-base) var(--ease-standard);
+	}
+
+	.ui-faq__question {
+		list-style: none;
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		padding: 1.2rem;
+		font-size: clamp(1.95rem, 2vw, 2.8rem);
+		line-height: 1.2;
+		color: #0c121b;
+	}
+
+	.ui-faq__question::-webkit-details-marker {
+		display: none;
+	}
+
+	.ui-faq__question::after {
+		content: "+";
+		flex: 0 0 auto;
+		font-size: 2.4rem;
+		line-height: 1;
+		color: rgb(10 15 23 / 0.86);
+	}
+
+	.ui-faq__item[open] .ui-faq__question::after {
+		content: "−";
+	}
+
+	/* Override details UA default hiding with higher specificity, no !important needed. */
+	.ui-faq__item:not([open]) > .ui-faq__answer {
+		display: block;
+	}
+
+	.ui-faq__answer {
+		max-height: 0;
+		overflow: hidden;
+		transition:
+			max-height var(--transition-base) var(--ease-standard),
+			opacity var(--transition-base) var(--ease-standard);
+		opacity: 0;
+	}
+
+	.ui-faq__item[open] .ui-faq__answer {
+		max-height: 40rem;
+		opacity: 1;
+	}
+
+	.ui-faq__answer-inner {
+		min-height: 0;
+		overflow: hidden;
+		padding: 0.1rem 1.2rem 1.2rem;
+		font-size: clamp(1.75rem, 1.62vw, 2.1rem);
+		line-height: 1.45;
+		color: rgb(15 20 27 / 0.9);
+		transform: translateY(-0.32rem);
+		transition: transform var(--transition-base) var(--ease-standard);
+	}
+
+	.ui-faq__item[open] .ui-faq__answer-inner {
+		transform: translateY(0);
+	}
+
+	.ui-faq__answer-inner a {
+		color: inherit;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.ui-faq__item,
+		.ui-faq__answer {
+			transition: none;
+		}
+	}
+
+	@media (max-width: 920px) {
+		.ui-faq__columns {
+			grid-template-columns: 1fr;
+		}
+	}
+}

@@ -2,7 +2,7 @@
 	font-family: "Adventure";
 	src: url("/assets/nav/font.otf") format("opentype");
 	font-display: block;
-	ascent-override: 95%;
+	ascent-override: 85%;
 	descent-override: 5%;
 }
 

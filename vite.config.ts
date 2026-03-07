@@ -3,6 +3,18 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
 	appType: "spa",
+	server: {
+		proxy: {
+			"/api": {
+				target: "http://3am.runasp.net",
+				changeOrigin: true,
+			},
+			"/items/clear": {
+				target: "http://3am.runasp.net",
+				changeOrigin: true,
+			},
+		},
+	},
 	resolve: {
 		alias: {
 			"@": fileURLToPath(new URL("./src", import.meta.url)),

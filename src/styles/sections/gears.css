@@ -1,0 +1,7 @@
+@import "./gears/hero.css";
+@import "./gears/productGrid.css";
+@import "./gears/banners.css";
+
+.gears-page {
+	display: grid;
+}

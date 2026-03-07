@@ -1,0 +1,110 @@
+.page-section.gears-banners {
+	padding: 4rem 2.4rem;
+	background: #0a0a12;
+}
+
+.gears-banners__newsletter {
+	background: #101014;
+	border: 1px solid #2a2a3d;
+	border-radius: 1.5rem;
+	padding: 3rem;
+	text-align: center;
+}
+
+.gears-banners__newsletter-content {
+	max-width: 600px;
+	margin: 0 auto;
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+}
+
+.gears-banners__newsletter-title {
+	font-size: clamp(2.3rem, 3vw, 2.8rem);
+	font-weight: 800;
+	color: #ffffff;
+	margin: 0;
+}
+
+.gears-banners__newsletter-description {
+	font-size: 1.2rem;
+	color: rgba(255, 255, 255, 0.9);
+	margin: 0;
+}
+
+.gears-banners__newsletter-form {
+	margin-top: 1rem;
+}
+
+.gears-banners__newsletter-inputs {
+	display: flex;
+	gap: 1rem;
+}
+
+.gears-banners__newsletter-email {
+	flex: 1;
+	background: rgba(255, 255, 255, 0.1);
+	border: 1px solid rgba(255, 255, 255, 0.3);
+	color: #ffffff;
+	padding: 1rem 1.5rem;
+	border-radius: 0.8rem;
+	font-size: 1.08rem;
+	outline: none;
+	transition: all 0.2s ease;
+}
+
+.gears-banners__newsletter-email::placeholder {
+	color: rgba(255, 255, 255, 0.6);
+}
+
+.gears-banners__newsletter-email:focus {
+	background: rgba(255, 255, 255, 0.15);
+	border-color: #ffffff;
+}
+
+.gears-banners__newsletter-submit {
+	background: #ffffff;
+	color: #e94560;
+	border: none;
+	padding: 1rem 2rem;
+	border-radius: 0.8rem;
+	font-size: 1.08rem;
+	font-weight: 700;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	white-space: nowrap;
+}
+
+.gears-banners__newsletter-submit:hover {
+	background: #f5f5f5;
+	transform: scale(1.02);
+}
+
+.gears-banners__newsletter-disclaimer {
+	font-size: 0.92rem;
+	color: rgba(255, 255, 255, 0.7);
+	margin: 1rem 0 0;
+}
+
+.gears-banners__newsletter-form.is-submitted .gears-banners__newsletter-email {
+	border-color: #4ecdc4;
+	background: rgba(78, 205, 196, 0.2);
+}
+
+@media (max-width: 768px) {
+	.page-section.gears-banners {
+		padding: 3rem 1.6rem;
+	}
+
+	.gears-banners__newsletter {
+		padding: 2rem 1.5rem;
+	}
+
+	.gears-banners__newsletter-inputs {
+		flex-direction: column;
+	}
+
+	.gears-banners__newsletter-submit {
+		width: 100%;
+	}
+}

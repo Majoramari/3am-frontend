@@ -11,7 +11,9 @@ type DomGlobalKey =
 	| "HTMLImageElement"
 	| "DocumentFragment"
 	| "NodeFilter"
-	| "Comment";
+	| "Comment"
+	| "localStorage"
+	| "sessionStorage";
 
 const DOM_GLOBAL_KEYS: ReadonlyArray<DomGlobalKey> = [
 	"window",
@@ -25,6 +27,8 @@ const DOM_GLOBAL_KEYS: ReadonlyArray<DomGlobalKey> = [
 	"DocumentFragment",
 	"NodeFilter",
 	"Comment",
+	"localStorage",
+	"sessionStorage",
 ];
 
 type Snapshot = {
@@ -64,6 +68,8 @@ export const installDom = (url = "https://example.com/"): GlobalWindow => {
 	globals.NodeFilter =
 		windowInstance.NodeFilter as unknown as typeof NodeFilter;
 	globals.Comment = windowInstance.Comment as unknown as typeof Comment;
+	globals.localStorage = windowInstance.localStorage as unknown as typeof localStorage;
+	globals.sessionStorage = windowInstance.sessionStorage as unknown as typeof sessionStorage;
 
 	return windowInstance;
 };

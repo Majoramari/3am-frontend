@@ -1,0 +1,134 @@
+@layer sections {
+	.page-section.dusk-spin {
+		inline-size: 100%;
+		color: var(--color-white);
+		background:
+			radial-gradient(
+				circle at 50% -20%,
+				rgb(150 173 202 / 0.25),
+				transparent 48%
+			),
+			linear-gradient(180deg, #05080b 0%, #0d131a 50%, #070a0e 100%);
+	}
+
+	.dusk-spin-shell {
+		inline-size: 100%;
+	}
+
+	.dusk-spin-stage {
+		position: relative;
+		inline-size: 100vw;
+		margin-inline: calc(50% - 50vw);
+		block-size: clamp(34rem, 58vw, 68rem);
+		display: grid;
+		place-items: center;
+		background:
+			radial-gradient(circle at 50% 2%, rgb(255 255 255 / 0.2), transparent 44%),
+			linear-gradient(
+				180deg,
+				rgb(56 74 96 / 0.82) 0%,
+				rgb(23 32 44 / 0.95) 48%,
+				rgb(11 16 24 / 0.98) 100%
+			);
+		overflow: hidden;
+	}
+
+	.dusk-spin-canvas {
+		position: relative;
+		z-index: 1;
+		max-inline-size: 100%;
+		max-block-size: 100%;
+		inline-size: auto;
+		block-size: auto;
+		display: block;
+		cursor: ew-resize;
+		outline: none;
+		touch-action: pan-y;
+	}
+
+	.dusk-spin-canvas.is-dragging {
+		cursor: grabbing;
+	}
+
+	.dusk-spin-canvas:focus-visible {
+		outline: 0.2rem solid rgb(255 255 255 / 0.82);
+		outline-offset: -0.2rem;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.dusk-spin-canvas {
+			cursor: default;
+		}
+	}
+
+	.model-page .dusk-spin-stage {
+		background: #000;
+		place-items: end center;
+		position: relative;
+	}
+
+	.model-page .dusk-spin-canvas {
+		align-self: end;
+	}
+
+	.model-page .dusk-spin-facts {
+		position: absolute;
+		inset-inline: clamp(1.2rem, 2.6vw, 3.2rem);
+		inset-block-start: clamp(1.2rem, 2vw, 2.2rem);
+		z-index: 4;
+		pointer-events: none;
+	}
+
+	.model-page .dusk-spin-facts__list {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		display: grid;
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		gap: clamp(0.8rem, 1.4vw, 1.4rem);
+	}
+
+	.model-page .dusk-spin-facts__item {
+		display: grid;
+		gap: 0.3rem;
+		align-content: start;
+	}
+
+	.model-page .dusk-spin-facts__label {
+		margin: 0;
+		font-size: clamp(1rem, 0.95vw, 1.25rem);
+		line-height: 1.15;
+		font-weight: 500;
+		color: rgb(224 233 245 / 0.9);
+	}
+
+	.model-page .dusk-spin-facts__label sup {
+		font-size: 0.62em;
+	}
+
+	.model-page .dusk-spin-facts__value {
+		margin: 0;
+		font-size: clamp(2rem, 2.3vw, 3rem);
+		line-height: 0.9;
+		font-weight: 700;
+		letter-spacing: -0.015em;
+		color: #fff;
+	}
+
+	@media (max-width: 960px) {
+		.model-page .dusk-spin-facts__list {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			gap: 0.8rem 1.4rem;
+		}
+	}
+
+	@media (max-width: 560px) {
+		.model-page .dusk-spin-facts__list {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+
+		.model-page .dusk-spin-facts__value {
+			font-size: clamp(1.65rem, 6vw, 2.1rem);
+		}
+	}
+}

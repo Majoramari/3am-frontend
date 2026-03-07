@@ -1,0 +1,10 @@
+@layer sections {
+	.dawn-page {
+		background: #000;
+		color: #eef3fb;
+	}
+
+	.dawn-page .page-section {
+		background: #000;
+	}
+}

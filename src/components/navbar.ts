@@ -1,5 +1,8 @@
 import { Button, type ButtonVariant } from "@components/button";
 import { MediaCard, type MediaCardConfig } from "@components/mediaCard";
+import { tokenHasRole } from "@lib/jwtClaims";
+import { getRouter } from "@lib/router";
+import { sanitizeMediaUrl, toSafeCssUrlValue } from "@lib/safeUrl";
 import { View } from "@lib/view";
 
 type NavMenuName = "dusk" | "dawn" | "gears";
@@ -15,11 +18,15 @@ type SecondaryNavItem = {
 	href: string;
 	variant?: ButtonVariant;
 	className?: string;
+	authAction?: "sign-out";
 };
 
 type MobileNavItem = {
 	label: string;
 	href: string;
+	variant?: ButtonVariant;
+	className?: string;
+	authAction?: "sign-out";
 };
 
 const PRIMARY_NAV_ITEMS: ReadonlyArray<PrimaryNavItem> = [
@@ -28,14 +35,45 @@ const PRIMARY_NAV_ITEMS: ReadonlyArray<PrimaryNavItem> = [
 	{ menu: "gears", label: "GEARS", href: "/gears" },
 ];
 
-const SECONDARY_NAV_ITEMS: ReadonlyArray<SecondaryNavItem> = [
+const DEMO_DRIVE_ITEM: SecondaryNavItem = {
+	label: "Demo Drive",
+	href: "/demo",
+	variant: "cta",
+	className: "nav-link-demo-drive",
+};
+
+const DASHBOARD_ITEM: SecondaryNavItem = {
+	label: "Dashboard",
+	href: "/admin/dashboard",
+	variant: "text",
+	className: "nav-link-dashboard",
+};
+
+const AUTHENTICATED_NAV_ITEMS: ReadonlyArray<SecondaryNavItem> = [
+	DEMO_DRIVE_ITEM,
 	{
-		label: "Demo Drive",
-		href: "/demo",
-		variant: "cta",
-		className: "nav-link-demo-drive",
+		label: "Sign Out",
+		href: "/signin",
+		variant: "text",
+		className: "nav-link-sign-out",
+		authAction: "sign-out",
 	},
-	{ label: "Sign In", href: "/signin" },
+];
+
+const AUTHENTICATED_ADMIN_NAV_ITEMS: ReadonlyArray<SecondaryNavItem> = [
+	DASHBOARD_ITEM,
+	{
+		label: "Sign Out",
+		href: "/signin",
+		variant: "text",
+		className: "nav-link-sign-out",
+		authAction: "sign-out",
+	},
+];
+
+const GUEST_NAV_ITEMS: ReadonlyArray<SecondaryNavItem> = [
+	DEMO_DRIVE_ITEM,
+	{ label: "Sign In", href: "/signin", variant: "outline" },
 ];
 
 const MOBILE_NAV_ITEMS: ReadonlyArray<MobileNavItem> = [
@@ -45,16 +83,41 @@ const MOBILE_NAV_ITEMS: ReadonlyArray<MobileNavItem> = [
 	{ label: "DEMO DRIVE", href: "/demo" },
 ];
 
+const MOBILE_NAV_ITEMS_ADMIN: ReadonlyArray<MobileNavItem> = [
+	{ label: "DUSK", href: "/dusk" },
+	{ label: "DAWN", href: "/dawn" },
+	{ label: "GEARS", href: "/gears" },
+];
+
+const MOBILE_DASHBOARD_ITEM: MobileNavItem = {
+	label: "DASHBOARD",
+	href: "/admin/dashboard",
+};
+
 const MOBILE_SIGN_IN_ITEM: MobileNavItem = {
 	label: "SIGN IN",
 	href: "/signin",
+	variant: "outline",
+	className: "nav-mobile-link-sign-in",
+};
+
+const MOBILE_SIGN_OUT_ITEM: MobileNavItem = {
+	label: "SIGN OUT",
+	href: "/signin",
+	variant: "text",
+	className: "nav-mobile-link-sign-out",
+	authAction: "sign-out",
 };
 
 const NAV_MEGA_PLACEHOLDER_IMAGE = "/assets/shared/placeholder.png";
 const NAV_MEGA_MEDIA_SOURCES = {
-	dusk: "/assets/dusk/dusk_transparent.webp",
-	dawn: "/assets/shared/placeholder.png",
+	dusk: "/assets/cars/dusk/nav/dusk.webp",
+	dawn: "/assets/cars/dawn/nav/dawn.webp",
 } as const satisfies Record<Exclude<NavMenuName, "gears">, string>;
+
+const hasAdminRole = (token: string | null): boolean => {
+	return tokenHasRole(token, "admin");
+};
 
 /**
  * Gears card data lives in one place so updates are simple:
@@ -65,9 +128,9 @@ const NAV_MEGA_MEDIA_SOURCES = {
 const GEARS_CARDS: ReadonlyArray<MediaCardConfig> = [
 	{
 		label: "Autonomous",
-		href: "/gears/autonomous",
+		href: "/gears",
 		className: "nav-gears-card-autonomous",
-		backgroundImage: "/assets/shared/placeholder.png",
+		backgroundImage: "/assets/shared/item.webp",
 		deferBackgroundLoad: true,
 		backgroundPosition: "right 20% center",
 		textAnchor: "top-center",
@@ -78,9 +141,9 @@ const GEARS_CARDS: ReadonlyArray<MediaCardConfig> = [
 	},
 	{
 		label: "Services",
-		href: "/gears/services",
+		href: "/gears",
 		className: "nav-gears-card-services",
-		backgroundImage: "/assets/shared/placeholder.png",
+		backgroundImage: "/assets/shared/mats.webp",
 		deferBackgroundLoad: true,
 		backgroundPosition: "left 20% center",
 		textAnchor: "bottom-left",
@@ -91,9 +154,9 @@ const GEARS_CARDS: ReadonlyArray<MediaCardConfig> = [
 	},
 	{
 		label: "Chargers",
-		href: "/gears/chargers",
+		href: "/gears",
 		className: "nav-gears-card-chargers",
-		backgroundImage: "/assets/shared/placeholder.png",
+		backgroundImage: "/assets/shared/charger.webp",
 		deferBackgroundLoad: true,
 		backgroundPosition: "center",
 		textAnchor: "bottom-left",
@@ -204,10 +267,17 @@ class Navbar extends View<"nav"> {
 	private currentPath = "";
 
 	/**
+	 * Authentication state
+	 */
+	private isAuthenticated = false;
+	private isAdmin = false;
+
+	/**
 	 * Pending close timer for delayed mega menu dismissal.
 	 */
 	private closeMenuTimerId: number | null = null;
 	private readonly loadedMenuMedia = new Set<NavMenuName>();
+	private suppressDesktopHoverUntilPointerLeave = false;
 
 	constructor() {
 		super("nav", { className: "nav-shell" });
@@ -220,6 +290,9 @@ class Navbar extends View<"nav"> {
 	override mount(parent: HTMLElement): void {
 		// Render + attach `<nav>` into the parent element.
 		super.mount(parent);
+
+		// Subscribe to auth state changes
+		this.subscribeToAuthState();
 
 		// Sync initial scroll state so the first paint matches current position.
 		this.lastScrollY = window.scrollY;
@@ -239,9 +312,138 @@ class Navbar extends View<"nav"> {
 		this.setCurrentPath(window.location.pathname);
 	}
 
-	protected override onDestroy(): void {
-		// Why: this timeout is local component state, so clear it on teardown.
-		this.cancelMenuClose();
+	private subscribeToAuthState(): void {
+		void import("@lib/authStore")
+			.then(({ authStore }) => {
+				const unsubscribe = authStore.subscribe((state) => {
+					const wasAuthenticated = this.isAuthenticated;
+					const wasAdmin = this.isAdmin;
+					this.isAuthenticated = state.isAuthenticated;
+					this.isAdmin = state.isAuthenticated
+						? hasAdminRole(state.accessToken)
+						: false;
+
+					// Re-render nav items when auth state changes
+					if (
+						wasAuthenticated !== this.isAuthenticated ||
+						wasAdmin !== this.isAdmin
+					) {
+						this.updateAuthNavItems();
+					}
+				});
+
+				// Cleanup subscription on destroy
+				this.cleanup.add(unsubscribe);
+			})
+			.catch(() => {
+				// Ignore auth-store load errors in isolated test environments.
+			});
+	}
+
+	private updateAuthNavItems(): void {
+		// Update desktop nav items
+		const navLinksEnd = this.element.querySelector(".nav-links-end");
+		if (navLinksEnd) {
+			navLinksEnd.innerHTML = "";
+			for (const item of this.getAuthNavItems()) {
+				const li = document.createElement("li");
+				const button = new Button({
+					label: item.label,
+					className: ["nav-link", item.className ?? ""]
+						.filter(Boolean)
+						.join(" "),
+					variant: item.variant ?? "text",
+					href: item.href,
+					dataset:
+						item.authAction === "sign-out"
+							? { authAction: item.authAction }
+							: undefined,
+				});
+				li.appendChild(button.renderToNode());
+				navLinksEnd.appendChild(li);
+			}
+			// Rebind click handlers
+			this.bindClickHandlers();
+		}
+
+		// Update mobile nav items
+		const mobileAuthItem = this.getMobileAuthItem();
+		const mobileNavList = this.element.querySelector(".nav-mobile-list");
+		if (mobileNavList) {
+			// Keep main items and replace only the auth action row.
+			const existingAuthItem = mobileNavList.querySelector(
+				".nav-mobile-auth-item",
+			);
+			if (existingAuthItem) {
+				existingAuthItem.remove();
+			}
+
+			const li = document.createElement("li");
+			li.className = "nav-mobile-auth-item";
+			const button = new Button({
+				label: mobileAuthItem.label,
+				className: ["nav-mobile-link", mobileAuthItem.className ?? ""]
+					.filter(Boolean)
+					.join(" "),
+				variant: mobileAuthItem.variant ?? "outline",
+				href: mobileAuthItem.href,
+				dataset:
+					mobileAuthItem.authAction === "sign-out"
+						? { authAction: mobileAuthItem.authAction }
+						: undefined,
+			});
+			li.appendChild(button.renderToNode());
+			mobileNavList.appendChild(li);
+			this.bindClickHandlers();
+		}
+
+		// Update top-right mobile auth button.
+		const mobileTopAuthButton = this.element.querySelector(
+			".nav-mobile-top-sign-in",
+		);
+		if (mobileTopAuthButton?.parentElement) {
+			const button = new Button({
+				label: mobileAuthItem.label,
+				className: [
+					"nav-mobile-top-sign-in",
+					mobileAuthItem.authAction === "sign-out"
+						? "nav-mobile-top-sign-out"
+						: "",
+				]
+					.filter(Boolean)
+					.join(" "),
+				variant: mobileAuthItem.variant ?? "outline",
+				href: mobileAuthItem.href,
+				dataset:
+					mobileAuthItem.authAction === "sign-out"
+						? { authAction: mobileAuthItem.authAction }
+						: undefined,
+			});
+			mobileTopAuthButton.replaceWith(button.renderToNode());
+			this.bindClickHandlers();
+		}
+	}
+
+	private getAuthNavItems(): ReadonlyArray<SecondaryNavItem> {
+		if (!this.isAuthenticated) {
+			return GUEST_NAV_ITEMS;
+		}
+
+		return this.isAdmin
+			? AUTHENTICATED_ADMIN_NAV_ITEMS
+			: AUTHENTICATED_NAV_ITEMS;
+	}
+
+	private getMobileNavItems(): ReadonlyArray<MobileNavItem> {
+		if (!this.isAuthenticated || !this.isAdmin) {
+			return MOBILE_NAV_ITEMS;
+		}
+
+		return [...MOBILE_NAV_ITEMS_ADMIN, MOBILE_DASHBOARD_ITEM];
+	}
+
+	private getMobileAuthItem(): MobileNavItem {
+		return this.isAuthenticated ? MOBILE_SIGN_OUT_ITEM : MOBILE_SIGN_IN_ITEM;
 	}
 
 	setCurrentPath(path: string): void {
@@ -261,6 +463,8 @@ class Navbar extends View<"nav"> {
 	 * - `nav-mega-stack`: desktop mega panels.
 	 */
 	render(): DocumentFragment {
+		const mobileAuthItem = this.getMobileAuthItem();
+
 		return this.tpl`
 			<div class="nav-inner">
 				<ul class="nav-grid">
@@ -305,7 +509,7 @@ class Navbar extends View<"nav"> {
 					<!-- Right: desktop utility actions -->
 					<li class="nav-grid-end">
 						<ul class="nav-links nav-links-end">
-							${SECONDARY_NAV_ITEMS.map(
+							${this.getAuthNavItems().map(
 								(item) => this.tpl`
 									<li>
 										${new Button({
@@ -315,16 +519,24 @@ class Navbar extends View<"nav"> {
 												.join(" "),
 											variant: item.variant ?? "text",
 											href: item.href,
+											dataset:
+												item.authAction === "sign-out"
+													? { authAction: item.authAction }
+													: undefined,
 										})}
 									</li>
 								`,
 							)}
 						</ul>
 							${new Button({
-								label: MOBILE_SIGN_IN_ITEM.label,
+								label: mobileAuthItem.label,
 								className: "nav-mobile-top-sign-in",
-								variant: "outline",
-								href: MOBILE_SIGN_IN_ITEM.href,
+								variant: mobileAuthItem.variant ?? "outline",
+								href: mobileAuthItem.href,
+								dataset:
+									mobileAuthItem.authAction === "sign-out"
+										? { authAction: mobileAuthItem.authAction }
+										: undefined,
 							})}
 						</li>
 					</ul>
@@ -335,7 +547,7 @@ class Navbar extends View<"nav"> {
 					aria-hidden="true"
 				>
 					<ul class="nav-mobile-list">
-						${MOBILE_NAV_ITEMS.map(
+						${this.getMobileNavItems().map(
 							(item) => this.tpl`
 								<li>
 									${new Button({
@@ -347,6 +559,20 @@ class Navbar extends View<"nav"> {
 								</li>
 							`,
 						)}
+						<li class="nav-mobile-auth-item">
+							${new Button({
+								label: mobileAuthItem.label,
+								className: ["nav-mobile-link", mobileAuthItem.className ?? ""]
+									.filter(Boolean)
+									.join(" "),
+								variant: mobileAuthItem.variant ?? "outline",
+								href: mobileAuthItem.href,
+								dataset:
+									mobileAuthItem.authAction === "sign-out"
+										? { authAction: mobileAuthItem.authAction }
+										: undefined,
+							})}
+						</li>
 					</ul>
 				</div>
 
@@ -356,9 +582,9 @@ class Navbar extends View<"nav"> {
 						<div class="nav-mega-links">
 							<p class="nav-mega-title">Dusk</p>
 							<ul class="nav-mega-list">
-								<li><a class="nav-mega-link" href="/dusk/explore">Explore</a></li>
-								<li><a class="nav-mega-link" href="/dusk/buy">Buy</a></li>
-								<li><a class="nav-mega-link" href="/dusk/demo">Demo Drive</a></li>
+								<li><a class="nav-mega-link" href="/dusk">Explore</a></li>
+								<li><a class="nav-mega-link" href="/dusk/build">Buy</a></li>
+								<li><a class="nav-mega-link" href="/demo?vehicle=dusk">Demo Drive</a></li>
 							</ul>
 						</div>
 						<a class="nav-mega-media" href="/dusk">
@@ -387,9 +613,9 @@ class Navbar extends View<"nav"> {
 						<div class="nav-mega-links">
 							<p class="nav-mega-title">Dawn</p>
 							<ul class="nav-mega-list">
-								<li><a class="nav-mega-link" href="/dawn/explore">Explore</a></li>
-								<li><a class="nav-mega-link" href="/dawn/buy">Buy</a></li>
-								<li><a class="nav-mega-link" href="/dawn/demo">Demo Drive</a></li>
+								<li><a class="nav-mega-link" href="/dawn">Explore</a></li>
+								<li><a class="nav-mega-link" href="/dawn/build">Buy</a></li>
+								<li><a class="nav-mega-link" href="/demo?vehicle=dawn">Demo Drive</a></li>
 							</ul>
 						</div>
 						<a class="nav-mega-media" href="/dawn">
@@ -417,16 +643,16 @@ class Navbar extends View<"nav"> {
 					<section class="nav-mega" data-menu="gears" aria-label="Gears menu">
 						<div class="nav-mega-links">
 							<p class="nav-mega-title">Gears</p>
-							<ul class="nav-mega-list">
-								<li>
-									<a class="nav-mega-link" href="/gears/all">All</a>
-								</li>
-								<li>
-									<a class="nav-mega-link" href="/gears/wheels">Wheels</a>
-								</li>
-								<li><a class="nav-mega-link" href="/gears/chargers">Chargers</a></li>
-								<li><a class="nav-mega-link" href="/gears/services">Services</a></li>
-							</ul>
+								<ul class="nav-mega-list">
+									<li>
+										<a class="nav-mega-link" href="/gears">All</a>
+									</li>
+									<li>
+										<a class="nav-mega-link" href="/gears">Wheels</a>
+									</li>
+									<li><a class="nav-mega-link" href="/gears">Chargers</a></li>
+									<li><a class="nav-mega-link" href="/gears">Services</a></li>
+								</ul>
 						</div>
 
 						<!-- Card-based media area for gears -->
@@ -461,6 +687,10 @@ class Navbar extends View<"nav"> {
 	 */
 	private readonly handleMenuPointerOver = (event: Event): void => {
 		if (!this.isDesktopViewport()) {
+			return;
+		}
+
+		if (this.suppressDesktopHoverUntilPointerLeave) {
 			return;
 		}
 
@@ -539,21 +769,43 @@ class Navbar extends View<"nav"> {
 			return;
 		}
 
+		if (link.dataset.authAction === "sign-out") {
+			event.preventDefault();
+			event.stopPropagation();
+			void this.handleSignOut();
+			return;
+		}
+
 		if (event.detail > 0) {
 			// Prevent persistent :focus-within styling after mouse clicks.
 			link.blur();
 		}
 
-		if (
-			link.closest(".nav-mobile-panel") ||
-			link.closest(".nav-mobile-top-sign-in")
-		) {
-			this.setMobileMenuOpen(false);
-			return;
+		// Always collapse expanded nav surfaces after any navbar navigation click.
+		this.setMobileMenuOpen(false);
+		this.clearActiveMenu();
+
+		// Desktop hover menus should stay closed until pointer exits and re-enters nav.
+		if (this.isDesktopViewport()) {
+			this.suppressDesktopHoverUntilPointerLeave = true;
+		}
+	};
+
+	private readonly handleSignOut = async (): Promise<void> => {
+		this.setMobileMenuOpen(false);
+		this.clearActiveMenu();
+
+		try {
+			const { authStore } = await import("@lib/authStore");
+			await authStore.logout();
+		} catch (error) {
+			console.error("Failed to sign out cleanly:", error);
 		}
 
-		if (link.closest(".nav-mega")) {
-			this.clearActiveMenu();
+		try {
+			getRouter().navigate("/signin");
+		} catch {
+			window.location.href = "/signin";
 		}
 	};
 
@@ -565,6 +817,7 @@ class Navbar extends View<"nav"> {
 			return;
 		}
 
+		this.suppressDesktopHoverUntilPointerLeave = false;
 		this.scheduleMenuClose();
 	};
 
@@ -613,6 +866,12 @@ class Navbar extends View<"nav"> {
 	 */
 	private updateVisibilityState(): void {
 		const currentScrollY = window.scrollY;
+		if (this.isBuilderRoute()) {
+			this.lastScrollY = currentScrollY;
+			this.setHidden(currentScrollY > Navbar.SCROLL_THRESHOLD_PX);
+			return;
+		}
+
 		const deltaY = currentScrollY - this.lastScrollY;
 		this.lastScrollY = currentScrollY;
 
@@ -680,30 +939,35 @@ class Navbar extends View<"nav"> {
 			return;
 		}
 
-		const deferredImages =
-			megaPanel.querySelectorAll<HTMLImageElement>("img[data-deferred-src]");
+		const deferredImages = megaPanel.querySelectorAll<HTMLImageElement>(
+			"img[data-deferred-src]",
+		);
 		for (const image of deferredImages) {
 			const deferredSrc = image.dataset.deferredSrc;
 			if (!deferredSrc) {
 				continue;
 			}
 
-			image.setAttribute("src", deferredSrc);
+			const safeSrc = sanitizeMediaUrl(deferredSrc);
+			if (safeSrc) {
+				image.src = safeSrc;
+			}
 			delete image.dataset.deferredSrc;
 		}
 
-		const deferredBackgroundNodes =
-			megaPanel.querySelectorAll<HTMLElement>("[data-deferred-bg-src]");
+		const deferredBackgroundNodes = megaPanel.querySelectorAll<HTMLElement>(
+			"[data-deferred-bg-src]",
+		);
 		for (const node of deferredBackgroundNodes) {
 			const deferredBackgroundSrc = node.dataset.deferredBgSrc;
 			if (!deferredBackgroundSrc) {
 				continue;
 			}
 
-			node.style.setProperty(
-				"--media-card-bg-image",
-				`url("${deferredBackgroundSrc}")`,
-			);
+			const safeCssUrl = toSafeCssUrlValue(deferredBackgroundSrc);
+			if (safeCssUrl) {
+				node.style.setProperty("--media-card-bg-image", safeCssUrl);
+			}
 			delete node.dataset.deferredBgSrc;
 		}
 
@@ -774,6 +1038,15 @@ class Navbar extends View<"nav"> {
 
 	private isDesktopViewport(): boolean {
 		return window.innerWidth >= Navbar.MOBILE_BREAKPOINT_PX;
+	}
+
+	private isBuilderRoute(): boolean {
+		return (
+			this.currentPath.startsWith("/dusk/build") ||
+			this.currentPath.startsWith("/dusk/buy") ||
+			this.currentPath.startsWith("/dawn/build") ||
+			this.currentPath.startsWith("/dawn/buy")
+		);
 	}
 
 	private syncActivePageLinks(): void {

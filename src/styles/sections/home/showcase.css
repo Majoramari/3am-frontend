@@ -1,0 +1,135 @@
+@layer sections {
+	.page-section.showcase {
+		inline-size: 100%;
+		color: var(--color-white);
+		background: var(--background);
+	}
+
+	.showcase-shell {
+		position: relative;
+		block-size: 220svh;
+	}
+
+	.showcase-sticky {
+		position: sticky;
+		inset-block-start: 0;
+		block-size: 100svh;
+		overflow: hidden;
+	}
+
+	.showcase-viewport {
+		inline-size: 100%;
+		block-size: 100%;
+		overflow: hidden;
+	}
+
+	.showcase-track {
+		display: flex;
+		block-size: 100%;
+		transform: translate3d(0, 0, 0);
+		will-change: transform;
+	}
+
+	.showcase-panel {
+		--showcase-sky-top: #3e5a7d;
+		--showcase-sky-bottom: #1d2734;
+		--showcase-stage-glow: rgb(255 255 255 / 0.18);
+		flex: 0 0 100%;
+		inline-size: 100%;
+		block-size: 100%;
+	}
+
+	.showcase-panel--dawn {
+		--showcase-sky-top: #000;
+		--showcase-sky-bottom: #000;
+		--showcase-stage-glow: transparent;
+	}
+
+	.showcase-panel--dusk {
+		--showcase-sky-top: #8a5d45;
+		--showcase-sky-bottom: #3a2b24;
+	}
+
+	.showcase-stage {
+		position: relative;
+		inline-size: 100%;
+		block-size: 100%;
+		overflow: hidden;
+		background:
+			radial-gradient(
+				circle at 50% -8%,
+				var(--showcase-stage-glow),
+				transparent 52%
+			),
+			linear-gradient(
+				180deg,
+				var(--showcase-sky-top) 0%,
+				var(--showcase-sky-bottom) 100%
+			);
+	}
+
+	.showcase-model {
+		--showcase-model-max-inline: min(88vw, 1100px);
+		--showcase-model-x: 0px;
+		--showcase-model-y: 0px;
+		position: absolute;
+		inset-inline-start: 50%;
+		inset-block-start: clamp(-1.8rem, -0.8vw, 0.6rem);
+		z-index: 4;
+		inline-size: var(--showcase-model-max-inline);
+		margin: 0;
+		text-align: center;
+		transform: translate(
+			calc(-50% + var(--showcase-model-x)),
+			var(--showcase-model-y)
+		);
+		font-family: "Model", sans-serif;
+		font-size: min(
+			clamp(9rem, 25vw, 34rem),
+			calc(var(--showcase-model-max-inline) / 4.15)
+		);
+		line-height: 0.88;
+		letter-spacing: 0.02em;
+		text-transform: uppercase;
+		color: rgb(232 238 248 / 0.68);
+		pointer-events: none;
+		user-select: none;
+	}
+
+	.showcase-vehicle {
+		position: absolute;
+		inset: 0;
+		z-index: 2;
+		transform: translate3d(0, 0, 0);
+		background: transparent;
+	}
+
+	.showcase-car-canvas {
+		display: block;
+		inline-size: 100%;
+		block-size: 100%;
+		object-fit: contain;
+		object-position: 50% 100%;
+		background: transparent;
+	}
+
+	@media (max-width: 1024px) {
+		.showcase-model {
+			--showcase-model-max-inline: min(90vw, 82rem);
+			font-size: clamp(5.8rem, 20vw, 12rem);
+		}
+	}
+
+	@media (max-width: 768px) {
+		.showcase-model {
+			inset-block-start: clamp(-1rem, -0.6vw, 0.25rem);
+			font-size: clamp(4.5rem, 22vw, 8.4rem);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.showcase-track {
+			will-change: auto;
+		}
+	}
+}

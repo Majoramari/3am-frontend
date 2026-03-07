@@ -3,12 +3,12 @@ import { LazyPicture } from "@components/lazyPicture";
 import { View } from "@lib/view";
 import { setupHomeHeroCarousel } from "./heroCarousel";
 
-const slideOneMobile = "/assets/hero/slide-1-520.png";
-const slideOneTablet = "/assets/hero/slide-1-1024.png";
-const slideOneDesktop = "/assets/hero/slide-1-1440.png";
-const slideTwoMobile = "/assets/hero/slide-2-520.png";
-const slideTwoTablet = "/assets/hero/slide-2-1024.png";
-const slideTwoDesktop = "/assets/hero/slide-2-1440.png";
+const slideOneMobile = "/assets/hero/slide-1-520.webp";
+const slideOneTablet = "/assets/hero/slide-1-1024.webp";
+const slideOneDesktop = "/assets/hero/slide-1-1440.webp";
+const slideTwoMobile = "/assets/hero/slide-2-520.webp";
+const slideTwoTablet = "/assets/hero/slide-2-1440.webp";
+const slideTwoDesktop = "/assets/hero/slide-2-1440.webp";
 
 export class HomeHeroSection extends View<"section"> {
 	constructor() {
@@ -87,7 +87,7 @@ export class HomeHeroSection extends View<"section"> {
 									${new Button({
 										label: "Book a Demo",
 										variant: "solid",
-										href: "/demo-drive",
+										href: "/demo",
 										className: "hero-layer hero-layer--primary",
 									})}
 									${new Button({

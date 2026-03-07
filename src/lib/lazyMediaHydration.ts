@@ -1,7 +1,12 @@
+import { sanitizeMediaUrl, sanitizeSrcset } from "@lib/safeUrl";
+
 export const hydrateDeferredImage = (image: HTMLImageElement): void => {
 	const lazySrcset = image.dataset.lazySrcset;
 	if (lazySrcset) {
-		image.srcset = lazySrcset;
+		const safeSrcset = sanitizeSrcset(lazySrcset);
+		if (safeSrcset) {
+			image.srcset = safeSrcset;
+		}
 		delete image.dataset.lazySrcset;
 	}
 
@@ -13,7 +18,10 @@ export const hydrateDeferredImage = (image: HTMLImageElement): void => {
 
 	const lazySrc = image.dataset.lazySrc;
 	if (lazySrc) {
-		image.src = lazySrc;
+		const safeSrc = sanitizeMediaUrl(lazySrc);
+		if (safeSrc) {
+			image.src = safeSrc;
+		}
 		delete image.dataset.lazySrc;
 	}
 };
@@ -23,16 +31,22 @@ export const hydrateDeferredSource = (source: HTMLSourceElement): boolean => {
 
 	const lazySrcset = source.dataset.lazySrcset;
 	if (lazySrcset) {
-		source.srcset = lazySrcset;
+		const safeSrcset = sanitizeSrcset(lazySrcset);
+		if (safeSrcset) {
+			source.srcset = safeSrcset;
+			changed = true;
+		}
 		delete source.dataset.lazySrcset;
-		changed = true;
 	}
 
 	const lazySrc = source.dataset.lazySrc;
 	if (lazySrc) {
-		source.src = lazySrc;
+		const safeSrc = sanitizeMediaUrl(lazySrc);
+		if (safeSrc) {
+			source.src = safeSrc;
+			changed = true;
+		}
 		delete source.dataset.lazySrc;
-		changed = true;
 	}
 
 	return changed;
