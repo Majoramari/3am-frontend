@@ -16,6 +16,7 @@ export class DawnPage extends View<"section"> {
 			<h1 class="visually-hidden">Model Dawn</h1>
 			${new DawnHeroSection()}
 			${new VehicleHeroMediaSection({
+				showHeroMedia: false,
 				showcaseItems: [
 					{
 						kind: "video",
