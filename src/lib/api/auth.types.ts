@@ -66,7 +66,7 @@ export type ConfirmPaymentDTO = {
 	frontendUrl: string;
 };
 
-export type PaymentMethod = 1;
+export type PaymentMethod = 1 | 2;
 
 export type PaymentResponseDTO = {
 	success: boolean;

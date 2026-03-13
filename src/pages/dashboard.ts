@@ -138,8 +138,11 @@ export class DashboardPage extends View<"section"> {
 		this.bindEvents();
 
 		try {
-			const products = await productsApi.getAll();
-			this.products = [...products].sort((a, b) => b.id - a.id);
+			const products = await productsApi.getAllAdmin();
+			const activeProducts = products.filter(
+				(product) => product.isActive !== false,
+			);
+			this.products = [...activeProducts].sort((a, b) => b.id - a.id);
 		} catch (error) {
 			console.error("Failed to load products:", error);
 			this.productsError =

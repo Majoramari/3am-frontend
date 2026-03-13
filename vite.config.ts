@@ -9,6 +9,10 @@ export default defineConfig({
 				target: "http://3am.runasp.net",
 				changeOrigin: true,
 			},
+			"/WeatherForecast": {
+				target: "http://3am.runasp.net",
+				changeOrigin: true,
+			},
 			"/items/clear": {
 				target: "http://3am.runasp.net",
 				changeOrigin: true,

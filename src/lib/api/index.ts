@@ -36,6 +36,7 @@ export type Product = {
 	brand: string;
 	specsJson: string | Record<string, unknown>;
 	categoryName: string;
+	isActive?: boolean;
 };
 
 type ApiProductRecord = Record<string, unknown>;
@@ -244,6 +245,12 @@ const normalizeProduct = (raw: unknown): Product => {
 			data.image,
 		"",
 	);
+	const isActive =
+		typeof data.isActive === "boolean"
+			? data.isActive
+			: typeof data.IsActive === "boolean"
+				? data.IsActive
+				: undefined;
 
 	return {
 		id: asNumber(data.id ?? data.Id ?? data.product_Id ?? data.productId, 0),
@@ -262,6 +269,7 @@ const normalizeProduct = (raw: unknown): Product => {
 				data.category_name,
 			"General",
 		),
+		isActive,
 	};
 };
 
@@ -539,7 +547,14 @@ async function fetchApi<T>(
 
 export const productsApi = {
 	getAll: (): Promise<Product[]> =>
-		fetchApi<unknown[]>("/Product").then((payload) => {
+		fetchApi<unknown[]>("/Product/available-products").then((payload) => {
+			if (!Array.isArray(payload)) {
+				return [];
+			}
+			return payload.map((item) => normalizeProduct(item));
+		}),
+	getAllAdmin: (): Promise<Product[]> =>
+		fetchApi<unknown[]>("/Product", { requiresAuth: true }).then((payload) => {
 			if (!Array.isArray(payload)) {
 				return [];
 			}
@@ -635,7 +650,7 @@ export const productsApi = {
 	},
 
 	deleteProduct: (id: number): Promise<void> =>
-		fetchApi<void>(`/Product/delete-product/${id}`, {
+		fetchApi<void>(`/Product/toggle-product/${id}`, {
 			method: "DELETE",
 			requiresAuth: true,
 		}),
@@ -754,5 +769,8 @@ export const dashboardApi = {
 
 export const weatherApi = {
 	getForecast: (): Promise<void> =>
-		fetchApi<void>("/WeatherForecast", { requiresAuth: true }),
+		fetchApi<void>("/WeatherForecast", {
+			requiresAuth: true,
+			useRawEndpoint: true,
+		}),
 };
